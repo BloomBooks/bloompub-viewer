@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron";
+import { build, version } from "../../package.json";
 
 /**
  * Set `__static` path to static files in production
@@ -29,6 +30,10 @@ function createWindow() {
       nodeIntegration: true,
       webSecurity: false
     }
+  });
+
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow?.setTitle(build.productName + " " + version);
   });
 
   mainWindow.loadURL(winURL);

@@ -31,13 +31,22 @@
     "files": [
       "dist/electron/**/*"
     ],
-    "fileAssociations": [
-      {
-        "ext": "bloomd",
-        "name": "BloomPub File",
-        "role": "Viewer"
-      }
-    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icons/icon.ico",
+      "fileAssociations": [
+        {
+          "ext": "bloomd",
+          "name": "BloomPub File",
+          "role": "Viewer"
+        },
+        {
+          "ext": "bloompub",
+          "name": "BloomPub File",
+          "role": "Viewer"
+        }
+      ]
+    },
     "dmg": {
       "contents": [
         {
@@ -55,9 +64,6 @@
     },
     "mac": {
       "icon": "build/icons/icon.icns"
-    },
-    "win": {
-      "icon": "build/icons/icon.ico"
     },
     "linux": {
       "icon": "build/icons"

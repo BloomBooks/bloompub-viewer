@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import * as Path from "path";
+import { setupAutoUpdate } from "./autoUpdate";
+
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -34,6 +36,16 @@ function createWindow() {
   });
 
   mainWindow.loadURL(winURL);
+
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      "*****If you hang when doing a 'yarn dev', it's possible that Chrome is trying to pause on a breakpoint. Disable the mainWindow.openDevTools(), run 'dev' again, open devtools (ctrl+alt+i), turn off the breakpoint settings, then renable."
+    );
+
+    mainWindow.webContents.openDevTools();
+  }
+
+  setupAutoUpdate();
 
   mainWindow.on("closed", () => {
     mainWindow = null;

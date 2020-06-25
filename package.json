@@ -10,6 +10,7 @@
     "build:dir": "node .electron-react/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-react/build.js",
     "build:web": "cross-env BUILD_TARGET=web node .electron-react/build.js",
+    "release": "yarn build -p always",
     "dev": "node .electron-react/dev-runner.js",
     "lintx": "eslint --ext .ts,.tsx -f ./node_modules/eslint-friendly-formatter src",
     "lint": "",
@@ -24,7 +25,7 @@
   },
   "build": {
     "productName": "BloomPub Viewer",
-    "appId": "org.sil.bloom-viewer",
+    "appId": "org.sil.bloompub-viewer",
     "directories": {
       "output": "output"
     },
@@ -34,6 +35,9 @@
     "win": {
       "target": "nsis",
       "icon": "build/windows.ico",
+      "publish": [
+        "github"
+      ],
       "fileAssociations": [
         {
           "ext": "bloomd",
@@ -73,6 +77,8 @@
     "@types/archiver": "^3.0.0",
     "archiver": "^3.1.1",
     "bloom-player": "^1.1.49",
+    "electron-log": "^4.2.2",
+    "electron-updater": "^4.3.1",
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
     "react": "^16.12.0",

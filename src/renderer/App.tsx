@@ -5,29 +5,30 @@ import { hot } from "react-hot-loader/root";
 import * as fs from "fs";
 import * as unzipper from "unzipper";
 import * as temp from "temp";
-//import bloomPlayerJS from "./bloomPlayer.min.js";
-//import bloomPlayerHtml from "../../node_modules/bloom-player/dist/bloomplayer.htm";
 
 const bloomPlayerHtml = "bloomplayer.htm";
-//const bloomdPath = "D:\\temp\\The Moon and the Cap.bloomd";
-const App: React.FunctionComponent<{ bloomdPath: string }> = props => {
+const App: React.FunctionComponent<{ zipFilePath: string }> = (props) => {
   const [htmPath, setHtmPath] = useState("");
 
   useEffect(() => {
     console.log("bloom htmlpath=" + bloomPlayerHtml);
-    const slashIndex = props.bloomdPath
+    const slashIndex = props.zipFilePath
       .replace(/\\/g, "/")
 
       .lastIndexOf("/");
     let bookTitle: string;
-    bookTitle = props.bloomdPath.substring(
+    bookTitle = props.zipFilePath.substring(
       slashIndex + 1,
-      props.bloomdPath.length
+      props.zipFilePath.length
     );
-    const filename = bookTitle.replace(".bloomd", ".htm");
+    const filename = bookTitle
+      .replace(/\.bloomd/gi, ".htm")
+      .replace(/\.bloompub/gi, ".htm");
     temp.track();
     temp.mkdir("bloom-reader-", (err, p) => {
-      fs.createReadStream(props.bloomdPath).pipe(unzipper.Extract({ path: p }));
+      fs.createReadStream(props.zipFilePath).pipe(
+        unzipper.Extract({ path: p })
+      );
       console.log("booktitle = " + bookTitle);
       console.log("filename = " + filename);
       console.log("temp path = " + p);
@@ -38,7 +39,7 @@ const App: React.FunctionComponent<{ bloomdPath: string }> = props => {
         1000
       );
     });
-  }, [props.bloomdPath]);
+  }, [props.zipFilePath]);
 
   console.log("htmPath = " + htmPath);
   return (

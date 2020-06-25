@@ -1,47 +1,46 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
+const electron = require("electron");
+import { ipcRenderer, remote, app } from "electron";
+import * as fs from "fs";
 import App from "./App";
-import { ipcRenderer, remote } from "electron";
 
 updateMainMenu();
 const path = ipcRenderer.sendSync("get-file-that-launched-me");
-remote.getCurrentWindow().setTitle("Bloom Viewer");
+
+const title = "BloomPub Viewer " + require("../../package.json").version;
+
+remote.getCurrentWindow().setTitle(title);
 
 //show initial book or notice
-showBook(path);
+if (path && fs.existsSync(path)) {
+  showBook(path);
+} else {
+  showOpenFile();
+}
 
-function showBook(bloomdPath: string) {
-  console.log(`path ='${bloomdPath}'`);
-  if (path) {
-    ReactDOM.render(
-      <App bloomdPath={bloomdPath} />,
-      document.getElementById("root")
-    );
-  } else {
-    ReactDOM.render(
-      <h1>
-        Our apologies... please quit this app, then double click on a .bloomd
-        file to run open it.
-      </h1>,
-      document.getElementById("root")
-    );
-  }
+function showBook(zipFilePath: string) {
+  electron.remote.app.addRecentDocument(zipFilePath);
+  ReactDOM.render(
+    <App zipFilePath={zipFilePath} />,
+    document.getElementById("root")
+  );
 }
 
 function updateMainMenu() {
   const mainWindow = remote.getCurrentWindow();
   const macMenu = {
-    label: `Bloom Viewer`,
+    label: `BloomPub Viewer`,
     submenu: [
       {
         label: `Quit`,
         accelerator: "Command+Q",
         click() {
           remote.app.quit();
-        }
-      }
-    ]
+        },
+      },
+    ],
   };
 
   const fileMenu = {
@@ -51,23 +50,10 @@ function updateMainMenu() {
         label: "&" + `Open BloomPub...`,
         accelerator: "Ctrl+O",
         click: () => {
-          const options: Electron.OpenDialogOptions = {
-            properties: ["openFile"],
-            filters: [
-              {
-                name: "Bloom Digital Book",
-                extensions: ["bloomd", "bloompub"]
-              }
-            ]
-          };
-          remote.dialog.showOpenDialog(options).then(result => {
-            if (!result.canceled && result.filePaths.length > 0) {
-              showBook(result.filePaths[0]);
-            }
-          });
-        }
-      }
-    ]
+          showOpenFile();
+        },
+      },
+    ],
   };
   if (fileMenu && process.platform !== "darwin") {
     //fileMenu.submenu.push({ type: "separator" });
@@ -86,4 +72,21 @@ function updateMainMenu() {
   );
 
   remote.Menu.setApplicationMenu(menu);
+}
+function showOpenFile() {
+  const options: Electron.OpenDialogOptions = {
+    title: "Open BloomPub File",
+    properties: ["openFile"],
+    filters: [
+      {
+        name: "BloomPub Book",
+        extensions: ["bloomd", "bloompub"],
+      },
+    ],
+  };
+  remote.dialog.showOpenDialog(options).then((result) => {
+    if (!result.canceled && result.filePaths.length > 0) {
+      showBook(result.filePaths[0]);
+    }
+  });
 }

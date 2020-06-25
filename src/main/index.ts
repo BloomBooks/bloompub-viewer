@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-
+import * as Path from "path";
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -27,8 +27,10 @@ function createWindow() {
     width: 1000,
     webPreferences: {
       nodeIntegration: true,
-      webSecurity: false
-    }
+      webSecurity: false,
+    },
+    //windows
+    icon: Path.join(__dirname, "../../build/windows.ico"),
   });
 
   mainWindow.loadURL(winURL);
@@ -59,7 +61,7 @@ ipcMain.on("get-file-that-launched-me", (event, arg) => {
     var openFilePath = process.argv[1];
     event.returnValue = openFilePath;
   } else {
-    event.returnValue = "D:\\temp\\The Moon and the Cap.bloomd";
+    event.returnValue = ""; //"D:\\temp\\The Moon and the Cap.bloomd";
   }
 });
 /**

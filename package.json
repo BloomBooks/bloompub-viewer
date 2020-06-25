@@ -1,6 +1,6 @@
 {
   "name": "bloom-viewer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
   "license": "MIT",
@@ -23,17 +23,17 @@
     "test:e2e": "yarn run pack && jest -c jest.e2e.config.js"
   },
   "build": {
-    "productName": "Bloom Viewer",
+    "productName": "BloomPub Viewer",
     "appId": "org.sil.bloom-viewer",
     "directories": {
-      "output": "build"
+      "output": "output"
     },
     "files": [
       "dist/electron/**/*"
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/icons/icon.ico",
+      "icon": "build/windows.ico",
       "fileAssociations": [
         {
           "ext": "bloomd",

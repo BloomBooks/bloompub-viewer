@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
+// I couldn't get   import 'react-toastify/dist/ReactToastify.css'; to work, so I copied it in.
+import "./ReactToastify.min.css";
 import { hot } from "react-hot-loader/root";
-
+import { ToastContainer } from "react-toastify";
 import * as fs from "fs";
 import * as unzipper from "unzipper";
 import * as temp from "temp";
+import { useCheckForNewVersion } from "./useCheckForNewVersion";
 
 const bloomPlayerHtml = "bloomplayer.htm";
 const App: React.FunctionComponent<{ zipFilePath: string }> = (props) => {
   const [htmPath, setHtmPath] = useState("");
-
+  useCheckForNewVersion();
   useEffect(() => {
     console.log("bloom htmlpath=" + bloomPlayerHtml);
     const slashIndex = props.zipFilePath
@@ -50,6 +53,7 @@ const App: React.FunctionComponent<{ zipFilePath: string }> = (props) => {
           src={`${bloomPlayerHtml}?allowToggleAppBar=true&url=file:///${htmPath}`}
         />
       )}
+      <ToastContainer />
     </div>
   );
 }; ////https://s3.amazonaws.com/bloomharvest/benjamin%40aconnectedplanet.org%2f130b6829-5367-4e5c-80d7-ec588aae5281/bloomdigital%2findex.htm"

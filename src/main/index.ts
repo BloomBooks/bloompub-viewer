@@ -45,7 +45,9 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
-  setupAutoUpdate();
+  /* This is still in progress, held up while we decide if we can put the necessary certificate in github
+    secrets. Without that, we can't sign, and without signing, we can' auto update anyways.
+    setupAutoUpdate();*/
 
   mainWindow.on("closed", () => {
     mainWindow = null;

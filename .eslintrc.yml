@@ -15,4 +15,4 @@ parserOptions:
 plugins:
   - react
   - "@typescript-eslint"
-rules: { "react/prop-types": 1 }
+rules: { "react/prop-types": 0 }

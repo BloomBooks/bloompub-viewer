@@ -1,5 +1,5 @@
 {
-  "name": "bloom-viewer",
+  "name": "bloompub-viewer",
   "version": "0.2.0",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
@@ -24,7 +24,7 @@
     "test:e2e": "yarn run pack && jest -c jest.e2e.config.js"
   },
   "build": {
-    "productName": "BloomPub Viewer",
+    "productName": "BloomPUB Viewer",
     "appId": "org.sil.bloompub-viewer",
     "directories": {
       "output": "output"
@@ -41,12 +41,12 @@
       "fileAssociations": [
         {
           "ext": "bloomd",
-          "name": "BloomPub File",
+          "name": "BloomPUB File",
           "role": "Viewer"
         },
         {
           "ext": "bloompub",
-          "name": "BloomPub File",
+          "name": "BloomPUB File",
           "role": "Viewer"
         }
       ]

@@ -16,7 +16,7 @@ export function useCheckForNewVersion() {
           compareVersions(version, require("../../package.json").version) > 0
         ) {
           toast.success(
-            `Click to get new version of BloomPub Viewer (${data.data.name})`,
+            `Click to get new version of BloomPUB Viewer (${data.data.name})`,
             {
               position: "bottom-right",
               autoClose: 15000,

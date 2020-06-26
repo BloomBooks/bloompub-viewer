@@ -5,6 +5,8 @@
         "bloompub",
         "octokit",
         "repos",
-        "toastify"
+        "toastify",
+        "unzipper",
+        "wordmark"
     ]
 }

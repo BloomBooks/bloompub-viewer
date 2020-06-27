@@ -67,10 +67,24 @@
       ]
     },
     "mac": {
-      "icon": "build/icons/icon.icns"
+      "icon": "build/icon.icns",
+      "fileAssociations": [
+        {
+          "ext": "bloompub",
+          "name": "BloomPUB File",
+          "role": "Viewer"
+        }
+      ]
     },
     "linux": {
-      "icon": "build/icons"
+      "icon": "build/linux",
+      "fileAssociations": [
+        {
+          "ext": "bloompub",
+          "name": "BloomPUB File",
+          "role": "Viewer"
+        }
+      ]
     }
   },
   "dependencies": {

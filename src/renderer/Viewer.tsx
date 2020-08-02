@@ -38,20 +38,30 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
               filename = bookTitle
                 .replace(/\.bloomd/gi, ".htm")
                 .replace(/\.bloompub/gi, ".htm");
+              if (!fs.existsSync(Path.join(unpackedFolder, filename))) {
+                // maybe it's the old format AND the user changed the name
+                filename =
+                  fs
+                    .readdirSync(unpackedFolder)
+                    .find((f) => Path.extname(f) === ".htm") ||
+                  "no htm file found";
+              }
             }
+
             setHtmPath((unpackedFolder + "\\" + filename).replace(/\\/g, "/"));
           })
       );
     });
   }, [props.zipFilePath]);
 
-  console.log("htmPath = " + htmPath);
+  const path = encodeURIComponent(htmPath); // see https://issues.bloomlibrary.org/youtrack/issue/BL-8652
+  console.log(`path = ${htmPath} (encoded to ${path})`);
   return (
     <div className="App">
       {htmPath && (
         <iframe
           style={{ width: "100%", height: "100%" }}
-          src={`${bloomPlayerHtml}?allowToggleAppBar=true&url=file:///${htmPath}`}
+          src={`${bloomPlayerHtml}?allowToggleAppBar=true&url=file:///${path}`}
         />
       )}
     </div>

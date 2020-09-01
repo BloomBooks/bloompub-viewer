@@ -61,7 +61,7 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
       {htmPath && (
         <iframe
           style={{ width: "100%", height: "100%" }}
-          src={`${bloomPlayerHtml}?allowToggleAppBar=true&url=file:///${path}`}
+          src={`${bloomPlayerHtml}?allowToggleAppBar=true&url=file:///${path}&host=bloompubviewer`}
         />
       )}
     </div>

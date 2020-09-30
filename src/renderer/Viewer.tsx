@@ -54,16 +54,28 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
     });
   }, [props.zipFilePath]);
 
-  const path = encodeURIComponent(htmPath); // see https://issues.bloomlibrary.org/youtrack/issue/BL-8652
-  console.log(`path = ${htmPath} (encoded to ${path})`);
+  const rawUrl = getUrlFromFilePath(htmPath);
+  console.log(`path = ${htmPath} (encoded to ${rawUrl})`);
+
+  const encodedUrl = encodeURIComponent(rawUrl); // Encodes a URL for use in the query param
+  const iframeSource = `${bloomPlayerHtml}?allowToggleAppBar=true&url=${encodedUrl}&host=bloompubviewer`;
+  console.log(`iframe src set to ${iframeSource}`);
+
   return (
     <div className="App">
       {htmPath && (
         <iframe
           style={{ width: "100%", height: "100%" }}
-          src={`${bloomPlayerHtml}?allowToggleAppBar=true&url=file:///${path}&host=bloompubviewer`}
+          src={iframeSource}
         />
       )}
     </div>
   );
 }; ////https://s3.amazonaws.com/bloomharvest/benjamin%40aconnectedplanet.org%2f130b6829-5367-4e5c-80d7-ec588aae5281/bloomdigital%2findex.htm"
+
+// Converts a filePath into a URL. Applies appropriate encoding to any special characters.
+function getUrlFromFilePath(htmPath: string): string {
+  // see https://issues.bloomlibrary.org/youtrack/issue/BL-8652 and BL-9041
+  const encodedPath = htmPath.split(/[\\/]/g).map(encodeURIComponent).join('/');
+  return `file:///${encodedPath}`;
+}

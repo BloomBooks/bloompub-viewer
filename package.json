@@ -77,6 +77,8 @@
       ]
     },
     "linux": {
+      "target": "deb",
+      "maintainer": "stephen_mcconnel@sil.org",
       "icon": "build/linux",
       "fileAssociations": [
         {
@@ -85,7 +87,8 @@
           "role": "Viewer"
         }
       ]
-    }
+    },
+    "deb": {}
   },
   "dependencies": {
     "@emotion/core": "^10.0.28",

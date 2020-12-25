@@ -1,4 +1,8 @@
 import { css } from "@emotion/core";
+// these two lines make the css prop work on react elements
+import { jsx } from "@emotion/core";
+/** @jsx jsx */
+
 import React, { useEffect, useState } from "react";
 import { showOpenFile } from ".";
 import wordmark from "../../build/wordmark.svg";

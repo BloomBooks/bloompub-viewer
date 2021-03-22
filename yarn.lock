@@ -2585,12 +2585,13 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-bloom-player@^2.0.6:
-  version "2.0.6"
-  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.0.6.tgz#86fef9eb9131b1fb0a02175677d46ae5521b5c3f"
-  integrity sha512-GueRbV5u7yo9YlWaSZp30bZrmglpzz/Fk+hR+zw2yIoqwZ+gdb1QhzSeU76X5ity2fatvN7q+afqzoyO/lekLg==
+bloom-player@^2.0.48:
+  version "2.0.48"
+  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.0.48.tgz#521a948ec4893820cce8c68a358bf0e3aaf82a93"
+  integrity sha512-eX9oUsvFDXwj9M5+GR4gOcY2QA1V8VxzVW+QfZPkf0PZiD/te7tZ19hkuVva5Oohw6cj/j73FljAJOmhNeao4w==
   dependencies:
     dynamic-import-polyfill "^0.1.1"
+    jquery.nicescroll "^3.7.6"
 
 bluebird-lst@^1.0.9:
   version "1.0.9"
@@ -7394,6 +7395,18 @@ jest@^25.1.0:
     "@jest/core" "^25.1.0"
     import-local "^3.0.2"
     jest-cli "^25.1.0"
+
+jquery.nicescroll@^3.7.6:
+  version "3.7.6"
+  resolved "https://registry.yarnpkg.com/jquery.nicescroll/-/jquery.nicescroll-3.7.6.tgz#afeff3e80658dabe4f78d2d2e84250060fea0852"
+  integrity sha1-r+/z6AZY2r5PeNLS6EJQBg/qCFI=
+  dependencies:
+    jquery ">=1.8.3"
+
+jquery@>=1.8.3:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.6.0.tgz#c72a09f15c1bdce142f49dbf1170bdf8adac2470"
+  integrity sha512-JVzAR/AjBvVt2BmYhxRCSYysDsPcssdmTFnzyLEts9qNwmjmu4JTAMYubEfwVOSwpQ1I1sKKFcxhZCI2buerfw==
 
 js-base64@^2.1.8:
   version "2.5.2"

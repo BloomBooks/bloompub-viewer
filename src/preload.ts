@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld("electronApi", {
     // whitelist channels
     let validChannels = ["get-file-that-launched-me"];
     if (validChannels.includes(channel)) {
-      ipcRenderer.sendSync(channel, data);
+      return ipcRenderer.sendSync(channel, data);
     }
   },
   send: (channel: string, data) => {

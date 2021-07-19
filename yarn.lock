@@ -2586,9 +2586,9 @@ block-stream@*:
     inherits "~2.0.0"
 
 bloom-player@^2.0.48:
-  version "2.0.48"
-  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.0.48.tgz#521a948ec4893820cce8c68a358bf0e3aaf82a93"
-  integrity sha512-eX9oUsvFDXwj9M5+GR4gOcY2QA1V8VxzVW+QfZPkf0PZiD/te7tZ19hkuVva5Oohw6cj/j73FljAJOmhNeao4w==
+  version "2.0.72"
+  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.0.72.tgz#f89752c8460e75476dac192effbac00f0697ca80"
+  integrity sha512-F3VxOj9HGV02HFZ2LPiRgkXEXKqkECHWLfLYWe90613UOwJS/+XDpd+D4+dzr1z1X1HLZrKX6jJKBYFJ+Cio2w==
   dependencies:
     dynamic-import-polyfill "^0.1.1"
     jquery.nicescroll "^3.7.6"

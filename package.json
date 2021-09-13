@@ -48,6 +48,16 @@
           "ext": "bloompub",
           "name": "BloomPUB File",
           "role": "Viewer"
+        },
+        {
+          "ext": "BloomPUB",
+          "name": "BloomPUB File",
+          "role": "Viewer"
+        },
+        {
+          "ext": "bloomPUB",
+          "name": "BloomPUB File",
+          "role": "Viewer"
         }
       ]
     },

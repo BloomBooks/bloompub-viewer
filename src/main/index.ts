@@ -3,7 +3,6 @@ import * as fs from "fs";
 import * as unzipper from "unzipper";
 import * as temp from "temp";
 import * as Path from "path";
-import { setupAutoUpdate } from "./autoUpdate";
 
 /**
  * Set `__static` path to static files in production
@@ -96,7 +95,9 @@ function convertUrlToPath(requestUrl: string): string {
         )
       : __dirname;
   let path: string;
-  if (urlPath.startsWith("bloomplayer.htm?allowToggleAppBar")) {
+  if (urlPath.startsWith("host/fonts/"))
+    path = getPathToFont(urlPath.substring("host/fonts/".length));
+  else if (urlPath.startsWith("bloomplayer.htm?allowToggleAppBar")) {
     path = Path.join(playerFolder, "bloomplayer.htm");
   } else if (
     urlPath.startsWith("bloomPlayer-") &&
@@ -116,6 +117,45 @@ function convertUrlToPath(requestUrl: string): string {
   }
   //console.log(`bpub handler: path=${path}`);
   return path;
+}
+
+// Starting in bloom-player 2.1, we have font-face rules which tell the host to serve up
+// the appropriate Andika or Andika New Basic font file. An example is:
+//             @font-face {
+//                font-family: "Andika New Basic";
+//                font-weight: bold;
+//                font-style: normal;
+//                src:
+//                    local("Andika New Basic Bold"),
+//                    local("Andika Bold"),
+//    ===>            url("./host/fonts/Andika New Basic Bold"),
+//                    url("https://bloomlibrary.org/fonts/Andika%20New%20Basic/AndikaNewBasic-B.woff")
+//                ;
+//            }
+// So if we have a request for /host/fonts/, here is where we intercept and handle it.
+function getPathToFont(fontRequested: string) {
+  let fontFileName = fontRequested;
+  switch (fontRequested) {
+    case "Andika New Basic":
+    case "Andika":
+      fontFileName = "Andika-Regular.ttf";
+      break;
+    case "Andika New Basic Bold":
+    case "Andika Bold":
+      fontFileName = "Andika-Bold.ttf";
+      break;
+    case "Andika New Basic Italic":
+    case "Andika Italic":
+      fontFileName = "Andika-Italic.ttf";
+      break;
+    case "Andika New Basic Bold Italic":
+    case "Andika Bold Italic":
+      fontFileName = "Andika-BoldItalic.ttf";
+      break;
+  }
+  return Path.normalize(
+    Path.join(app.getAppPath(), "../../static/fonts/", fontFileName)
+  );
 }
 
 app.whenReady().then(() => {

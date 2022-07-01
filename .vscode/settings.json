@@ -1,14 +1,15 @@
 {
-	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
-    "cSpell.words": [
-        "Dropzone",
-        "bloombooks",
-        "bloompub",
-        "octokit",
-        "repos",
-        "toastify",
-        "unzipper",
-        "wordmark"
-    ]
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "cSpell.words": [
+    "Andika",
+    "bloombooks",
+    "bloompub",
+    "Dropzone",
+    "octokit",
+    "repos",
+    "toastify",
+    "unzipper",
+    "wordmark"
+  ]
 }

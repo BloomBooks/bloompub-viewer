@@ -2648,10 +2648,10 @@ bl@^3.0.0:
   dependencies:
     readable-stream "^3.0.1"
 
-bloom-player@^2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.1.4.tgz#5cbba728aec17b8dabbd02fdf4011b099340e103"
-  integrity sha512-MunZpVwOhBgFwW9gY4f93DgLTixoReqA1vH4E64VBY5qLzWxY48xeVgHRokAEGV6OLuiRkXiEbClWRet/o8C2w==
+bloom-player@latest:
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.1.7.tgz#70043d52b904d72ba0ee8da071338e955b0d0062"
+  integrity sha512-qtPDSZgmTPUVIb119dTS/ZRE79/CRGFO6U18w96Vs2VZJTIfvxVStrVpdrneXfQpwtDzEjoWY8e9cMMDgi3okw==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

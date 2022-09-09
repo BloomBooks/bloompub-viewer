@@ -83,6 +83,8 @@ app.on("ready", createWindow);
 let currentFolder: string;
 
 function convertUrlToPath(requestUrl: string): string {
+  // console.log(`convertUrlToPath: requestUrl=${requestUrl}`);
+
   const bloomPlayerOrigin = "bpub://bloom-player/";
   const baseUrl = decodeURI(requestUrl);
   const urlPath = baseUrl.startsWith(bloomPlayerOrigin)
@@ -99,10 +101,7 @@ function convertUrlToPath(requestUrl: string): string {
     path = getPathToFont(urlPath.substring("host/fonts/".length));
   else if (urlPath.startsWith("bloomplayer.htm?allowToggleAppBar")) {
     path = Path.join(playerFolder, "bloomplayer.htm");
-  } else if (
-    urlPath.startsWith("bloomPlayer-") &&
-    urlPath.endsWith(".min.js")
-  ) {
+  } else if (!urlPath.includes("/")) {
     path = Path.join(playerFolder, urlPath);
   } else if (urlPath.includes("?")) {
     path = Path.normalize(urlPath.substr(0, urlPath.indexOf("?")));
@@ -115,7 +114,8 @@ function convertUrlToPath(requestUrl: string): string {
   if (!Path.isAbsolute(path)) {
     path = Path.normalize(Path.join(currentFolder, path));
   }
-  //console.log(`bpub handler: path=${path}`);
+
+  // console.log(`convertUrlToPath: path=${path}`);
   return path;
 }
 

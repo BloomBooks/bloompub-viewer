@@ -1,15 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import "./index.css";
 import App, { showBook } from "./App";
 
 updateMainMenu();
 const zipFilePath = window.electronApi.sendSync("get-file-that-launched-me");
 
-ReactDOM.render(
-  <App initialFilePath={zipFilePath} />,
-  document.getElementById("root")
-);
+const root = createRoot(document.getElementById("root")!);
+root.render(<App initialFilePath={zipFilePath} />); // React 18+ syntax / rendering mode.
 
 function updateMainMenu() {
   const macMenu = {

@@ -8,7 +8,6 @@
     "types": [
       /*"@emotion/react",
       "@emotion/react/types/css-prop"*/
-      "jest"
     ],
     "lib": [
       "dom",

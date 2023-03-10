@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App, { showBook } from "./App";
+import { toast } from "react-toastify";
 
 updateMainMenu();
 const zipFilePath = window.electronApi.sendSync("get-file-that-launched-me");
@@ -51,7 +52,21 @@ function updateMainMenu() {
         label: "&" + `Full Screen`,
         accelerator: "F11",
         click: () => {
-          window.electronApi.send("toggleFullScreen");
+          const isNowFullScreen =
+            window.electronApi.sendSync("toggleFullScreen");
+
+          if (isNowFullScreen) {
+            toast.info(`Press F11 or ESC to exit full screen`, {
+              position: "top-left",
+              icon: false,
+              autoClose: 3000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: false,
+              progress: undefined,
+            });
+          }
         },
       },
       {

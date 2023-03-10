@@ -177,9 +177,12 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.on("toggleFullScreen", () => {
-  mainWindow!.setMenuBarVisibility(mainWindow!.isFullScreen());
-  mainWindow!.setFullScreen(!mainWindow!.isFullScreen());
+ipcMain.on("toggleFullScreen", (event) => {
+  console.log("xxxx");
+  const makeFullScreen = !mainWindow!.isFullScreen();
+  mainWindow!.setMenuBarVisibility(!makeFullScreen);
+  mainWindow!.setFullScreen(makeFullScreen);
+  event.returnValue = makeFullScreen;
 });
 
 ipcMain.on("exitFullScreen", () => {

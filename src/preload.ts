@@ -5,18 +5,14 @@ import { contextBridge, ipcRenderer, remote, shell } from "electron";
 contextBridge.exposeInMainWorld("electronApi", {
   sendSync: (channel: string, data) => {
     // whitelist channels
-    let validChannels = ["get-file-that-launched-me"];
+    let validChannels = ["get-file-that-launched-me", "toggleFullScreen"];
     if (validChannels.includes(channel)) {
       return ipcRenderer.sendSync(channel, data);
     }
   },
   send: (channel: string, data) => {
     // whitelist channels
-    let validChannels = [
-      "unpack-zip-file",
-      "toggleFullScreen",
-      "exitFullScreen",
-    ];
+    let validChannels = ["unpack-zip-file", "exitFullScreen"];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }

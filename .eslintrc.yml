@@ -15,4 +15,9 @@ parserOptions:
 plugins:
   - react
   - "@typescript-eslint"
-rules: { "react/prop-types": 0 }
+  - "@emotion"
+rules:
+  {
+    "react/prop-types": 0,
+    "react/no-unknown-property": ["error", { "ignore": ["css"] }],
+  }

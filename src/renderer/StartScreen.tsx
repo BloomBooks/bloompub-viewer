@@ -2,9 +2,9 @@ import { css } from "@emotion/react";
 
 import React from "react";
 import { showOpenFile } from ".";
-import wordmark from "../../build/wordmark.svg";
-import search from "../../build/Search.svg";
-import open from "../../build/Open.svg";
+import wordmark from "../../assets/wordmark.svg";
+import search from "../../assets/Search.svg";
+import open from "../../assets/Open.svg";
 
 export const StartScreen: React.FunctionComponent<{}> = (props) => {
   return (

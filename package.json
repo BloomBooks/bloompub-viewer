@@ -7,14 +7,10 @@
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-react/build.js && electron-builder",
-    "build:dir": "node .electron-react/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-react/build.js",
     "release": "yarn build -p always",
     "dev": "node .electron-react/dev-runner.js",
-    "lint": "eslint \"./**/!(*.d).ts{,x}\"",
-    "pack": "yarn run pack:main && yarn run pack:renderer",
-    "pack:main": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-react/webpack.main.config.js",
-    "pack:renderer": "cross-env NODE_ENV=production webpack --progress --colors --config .electron-react/webpack.renderer.config.js"
+    "lint": "eslint \"./**/!(*.d).ts{,x}\""
   },
   "build": {
     "productName": "BloomPUB Viewer",
@@ -27,7 +23,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/windows.ico",
+      "icon": "assets/windows.ico",
       "publish": [
         "github"
       ],
@@ -70,7 +66,7 @@
       ]
     },
     "mac": {
-      "icon": "build/icon.icns",
+      "icon": "assets/icon.icns",
       "fileAssociations": [
         {
           "ext": "bloompub",
@@ -82,7 +78,7 @@
     "linux": {
       "target": "deb",
       "maintainer": "stephen_mcconnel@sil.org",
-      "icon": "build/linux",
+      "icon": "assets/linux",
       "fileAssociations": [
         {
           "ext": "bloompub",

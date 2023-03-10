@@ -53,7 +53,7 @@ function createWindow() {
       preload: preloadPath,
     },
     //windows
-    icon: Path.join(__dirname, "../../build/windows.ico"),
+    icon: Path.join(__dirname, "../../assets/windows.ico"),
     title: "BloomPUB Viewer " + require("../../package.json").version,
   });
 

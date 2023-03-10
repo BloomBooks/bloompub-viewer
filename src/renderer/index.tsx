@@ -43,6 +43,28 @@ function updateMainMenu() {
       },
     ],
   };
+
+  const viewMenu = {
+    label: "&" + `View`,
+    submenu: [
+      {
+        label: "&" + `Full Screen`,
+        accelerator: "F11",
+        click: () => {
+          window.electronApi.send("toggleFullScreen");
+        },
+      },
+      {
+        label: "Exit full screen",
+        visible: false,
+        accelerator: "Esc",
+        click() {
+          window.electronApi.send("exitFullScreen");
+        },
+      },
+    ],
+  };
+
   if (fileMenu && process.platform !== "darwin") {
     //fileMenu.submenu.push({ type: "separator" });
     fileMenu.submenu.push({ role: "quit" } as any);
@@ -54,6 +76,7 @@ function updateMainMenu() {
   }
 
   template.push(fileMenu);
+  template.push(viewMenu);
   window.electronApi.setApplicationMenu(template);
 }
 export function showOpenFile() {

@@ -27,7 +27,10 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
   return (
     <div className="App">
       {htmPath && (
-        <iframe style={{ width: "100%", height: "100%" }} src={iframeSource} />
+        <iframe
+          style={{ width: "100%", height: "100%", border: "none" }}
+          src={iframeSource}
+        />
       )}
     </div>
   );

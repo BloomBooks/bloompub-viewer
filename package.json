@@ -1,6 +1,6 @@
 {
   "name": "bloompub-viewer",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
   "license": "MIT",
@@ -191,5 +191,6 @@
     "webpack-dev-server": "^3.10.2",
     "webpack-hot-middleware": "^2.25.0",
     "webpack-merge": "^4.2.2"
-  }
+  },
+  "packageManager": "yarn@1.22.19"
 }

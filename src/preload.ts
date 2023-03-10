@@ -12,7 +12,11 @@ contextBridge.exposeInMainWorld("electronApi", {
   },
   send: (channel: string, data) => {
     // whitelist channels
-    let validChannels = ["unpack-zip-file"];
+    let validChannels = [
+      "unpack-zip-file",
+      "toggleFullScreen",
+      "exitFullScreen",
+    ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }

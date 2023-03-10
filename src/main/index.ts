@@ -45,6 +45,7 @@ function createWindow() {
     height: 563,
     useContentSize: true,
     width: 1000,
+    fullscreenable: true,
     webPreferences: {
       nodeIntegration: false,
       webSecurity: true,
@@ -174,6 +175,16 @@ app.on("activate", () => {
   if (mainWindow === null) {
     createWindow();
   }
+});
+
+ipcMain.on("toggleFullScreen", () => {
+  mainWindow!.setMenuBarVisibility(mainWindow!.isFullScreen());
+  mainWindow!.setFullScreen(!mainWindow!.isFullScreen());
+});
+
+ipcMain.on("exitFullScreen", () => {
+  mainWindow!.setMenuBarVisibility(true);
+  mainWindow!.setFullScreen(false);
 });
 
 ipcMain.on("get-file-that-launched-me", (event, arg) => {

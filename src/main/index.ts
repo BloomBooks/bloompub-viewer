@@ -59,17 +59,6 @@ function createWindow() {
 
   mainWindow.loadURL(winURL);
 
-  // if (process.env.NODE_ENV === "development") {
-  //   console.log(
-  //     "*****If you hang when doing a 'yarn dev', it's possible that Chrome is trying to pause on a breakpoint. Disable the mainWindow.openDevTools(), run 'dev' again, open devtools (ctrl+alt+i), turn off the breakpoint settings, then renable."
-  //   );
-
-  //   mainWindow.webContents.openDevTools();
-  // } else if (process.env.DEBUG_BLOOMPUB_VIEWER === "yes") {
-  //   // Sometimes it's useful to poke around to see what the production build is doing.
-  //   mainWindow.webContents.openDevTools();
-  // }
-
   /* This is still in progress, held up while we decide if we can put the necessary certificate in github
     secrets. Without that, we can't sign, and without signing, we can' auto update anyways.
     setupAutoUpdate();*/

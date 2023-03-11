@@ -68,12 +68,11 @@ let rendererConfig = {
         include: [rendererPath],
       },
       {
-        test: /\.(js|jsx|ts|tsx)$/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            cacheDirectory: true,
-          },
+        test: /\.(js|ts|tsx)$/,
+        loader: "ts-loader",
+        options: {
+          transpileOnly: true,
+          experimentalWatchApi: true,
         },
         exclude: /node_modules/,
       },

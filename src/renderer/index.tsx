@@ -4,7 +4,6 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App, { showBook } from "./App";
 import { toast } from "react-toastify";
-
 updateMainMenu();
 const zipFilePath = window.electronApi.sendSync("get-file-that-launched-me");
 
@@ -75,6 +74,14 @@ function updateMainMenu() {
         accelerator: "Esc",
         click() {
           window.electronApi.send("exitFullScreen");
+        },
+      },
+      {
+        label: "Toggle &Developer Tools",
+        accelerator: "F12",
+        visible: false,
+        click() {
+          window.electronApi.send("toggleDevTools");
         },
       },
     ],

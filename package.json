@@ -9,7 +9,6 @@
     "build": "node .electron-react/build.js && electron-builder",
     "build:dir": "node .electron-react/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-react/build.js",
-    "build:web": "cross-env BUILD_TARGET=web node .electron-react/build.js",
     "release": "yarn build -p always",
     "dev": "node .electron-react/dev-runner.js",
     "lint": "eslint \"./**/!(*.d).ts{,x}\"",

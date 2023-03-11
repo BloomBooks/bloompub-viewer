@@ -11,7 +11,6 @@ const Multispinner = require("multispinner");
 
 const mainConfig = require("./webpack.main.config");
 const rendererConfig = require("./webpack.renderer.config");
-const webConfig = require("./webpack.web.config");
 
 const doneLog = chalk.bgGreen.white(" DONE ") + " ";
 const errorLog = chalk.bgRed.white(" ERROR ") + " ";
@@ -29,8 +28,6 @@ function clean() {
 }
 
 function build() {
-  greeting();
-
   del.sync(["dist/electron/*", "!.gitkeep"]);
 
   const tasks = ["main", "renderer"];
@@ -102,39 +99,4 @@ function pack(config) {
       }
     });
   });
-}
-
-function web() {
-  del.sync(["dist/web/*", "!.gitkeep"]);
-  webConfig.mode = "production";
-  webpack(webConfig, (err, stats) => {
-    if (err || stats.hasErrors()) console.log(err);
-
-    console.log(
-      stats.toString({
-        chunks: false,
-        colors: true,
-      })
-    );
-
-    process.exit();
-  });
-}
-
-function greeting() {
-  const cols = process.stdout.columns;
-  let text = "";
-
-  if (cols > 85) text = "lets-build";
-  else if (cols > 60) text = "lets-|build";
-  else text = false;
-
-  if (text && !isCI) {
-    say(text, {
-      colors: ["#7fd8f7"],
-      font: "simple3d",
-      space: false,
-    });
-  } else console.log(chalk.yellow.bold("\n  lets-build"));
-  console.log();
 }

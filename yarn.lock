@@ -2658,9 +2658,9 @@ bl@^4.0.3:
     readable-stream "^3.4.0"
 
 bloom-player@^2.1.25:
-  version "2.1.25"
-  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.1.25.tgz#22ff25de60ea09778491e9c1b8c6847ab2e541a5"
-  integrity sha512-ahikJVhsAHFaucyyE7hyCDLCI0ROGB7zub/PD56UgvkboqVhix4ByDekucY+rwXCZ9FxcLKXZz0VqGXJt3TeEw==
+  version "2.1.28"
+  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.1.28.tgz#771cc3bcadbf61be23f52bea6e561a1a93ac736a"
+  integrity sha512-+vieDDhHU13KodWROYGJ5it0DY/pVJV+hQMVVmjVQirdScqypL8mZDi9i7Ww9tKGVB8N67D+taRFmQQKFBFLsA==
 
 bluebird-lst@^1.0.9:
   version "1.0.9"

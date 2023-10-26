@@ -15,7 +15,7 @@ yarn dev
 ## Releasing
 
 1. Change the version in `package.json`.
-1. Commit, push.
+1. Commit, push. Push a vX.X.X tag.
    - A Github Action will build an installer for Windows and create an unpublished "Release" on Github.
 1. Edit the draft release at https://github.com/BloomBooks/bloompub-viewer/releases/ and publish it.
 1. Run the build at https://build.palaso.org/buildConfiguration/Bloom_SignBloomPUBInstaller to download and sign the installer.

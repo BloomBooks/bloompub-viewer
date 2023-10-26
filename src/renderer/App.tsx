@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
-// I couldn't get   import 'react-toastify/dist/ReactToastify.css'; to work, so I copied it in.
-import "./ReactToastify.min.css";
 import { Viewer } from "./Viewer";
 import { StartScreen } from "./StartScreen";
 import { toast, ToastContainer } from "react-toastify";
+import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
 import compareVersions from "compare-versions";
 
 let setZipPathStatic: (path: string) => void;
+
+// Make react-toastify styles work (without a css loader and without copying the css file into our code)
+injectStyle();
 
 const App: React.FunctionComponent<{ initialFilePath: string }> = (props) => {
   const [zipPath, setZipPath] = useState(props.initialFilePath);

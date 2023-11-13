@@ -75,11 +75,12 @@ let currentFolder: string;
 function convertUrlToPath(requestUrl: string): string {
   // console.log(`convertUrlToPath: requestUrl=${requestUrl}`);
 
-  const bloomPlayerOrigin = "bpub://bloom-player/";
-  const baseUrl = decodeURI(requestUrl);
+  const urlPrefix = "bpub://";
+  const bloomPlayerOrigin = urlPrefix + "bloom-player/";
+  const baseUrl = decodeURIComponent(requestUrl);
   const urlPath = baseUrl.startsWith(bloomPlayerOrigin)
-    ? baseUrl.substr(bloomPlayerOrigin.length)
-    : baseUrl.substr(7); // not from same origin? shouldn't happen.
+    ? baseUrl.substring(bloomPlayerOrigin.length)
+    : baseUrl.substring(urlPrefix.length); // not from same origin? shouldn't happen.
   const playerFolder =
     process.env.NODE_ENV === "development"
       ? Path.normalize(

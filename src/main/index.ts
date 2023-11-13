@@ -105,6 +105,10 @@ function convertUrlToPath(requestUrl: string): string {
     path = Path.normalize(Path.join(currentFolder, path));
   }
 
+  // If a subfile (image, video, activity) is stored with a '+' in the name, it will arrive
+  // here as "%2b". We need to convert it back to '+'.
+  path = path.replace(/%2b/gi, "+");
+
   // console.log(`convertUrlToPath: path=${path}`);
   return path;
 }

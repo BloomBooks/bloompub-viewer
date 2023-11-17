@@ -1,8 +1,8 @@
 import { app, BrowserWindow, ipcMain, net, protocol } from "electron";
 import * as fs from "fs";
-import * as unzipper from "unzipper";
 import * as temp from "temp";
 import * as Path from "path";
+import * as jszip from "jszip";
 
 /**
  * Set `__static` path to static files in production
@@ -77,8 +77,6 @@ app.on("ready", createWindow);
 let currentFolder: string;
 
 function convertUrlToPath(requestUrl: string): string {
-  // console.log(`convertUrlToPath: requestUrl=${requestUrl}`);
-
   const urlPrefix = "bpub://";
   const bloomPlayerOrigin = urlPrefix + "bloom-player/";
   const baseUrl = decodeURIComponent(requestUrl);
@@ -210,14 +208,35 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
   const slashIndex = zipFilePath.replace(/\\/g, "/").lastIndexOf("/");
   const unpackedFolder = temp.mkdirSync("bloomPUB-viewer-");
   currentFolder = unpackedFolder; // remember for bpub protocol if needed.
-  const stream = fs.createReadStream(zipFilePath);
-  // This will wait until we know the readable stream is actually valid before piping
-  stream.on("open", () => {
-    stream.pipe(
-      unzipper
-        .Extract({ path: unpackedFolder })
-        // unzipper calls this when it's done unzipping
-        .on("close", () => {
+
+  // use jszip to unzip the whole zipFilePath folder into unpackedFolder
+  fs.readFile(zipFilePath, (err, data) => {
+    if (err) {
+      console.log("Error reading file: " + err);
+      event.reply("zip-file-unpacked", zipFilePath, null);
+      return;
+    }
+
+    jszip.loadAsync(data).then(function (zip) {
+      Promise.all(
+        Object.keys(zip.files).map(function (filename) {
+          const file = zip.files[filename];
+          return file.async("nodebuffer").then(function (content) {
+            return { filename, content };
+          });
+        })
+      ).then(function (files) {
+        Promise.all(
+          files.map(function (file) {
+            const dest = Path.join(unpackedFolder, file.filename);
+            return new Promise<void>(function (resolve, reject) {
+              fs.writeFile(dest, file.content, function (err) {
+                if (err) reject(err);
+                else resolve();
+              });
+            });
+          })
+        ).then(function () {
           let filename = "index.htm";
           if (!fs.existsSync(Path.join(unpackedFolder, filename))) {
             // it must be the old method, where we named the htm the same as the bloomd (which was obviously fragile):
@@ -242,8 +261,9 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
             zipFilePath,
             Path.join(unpackedFolder, filename).replace(/\\/g, "/")
           );
-        })
-    );
+        });
+      });
+    });
   });
 });
 

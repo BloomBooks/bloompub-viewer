@@ -96,7 +96,7 @@
     "@types/archiver": "^3.0.0",
     "@types/temp": "^0.8.34",
     "archiver": "^3.1.1",
-    "bloom-player": "^2.1.29",
+    "bloom-player": "^2.1.31",
     "compare-versions": "^3.6.0",
     "electron-log": "^4.2.2",
     "electron-updater": "^4.3.1",

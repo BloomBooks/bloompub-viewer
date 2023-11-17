@@ -7,16 +7,6 @@ const webpack = require("webpack");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
-// https://github.com/zenghongtu/create-electron-react/issues/3
-// const whiteListedModules = ['']
-
-// const externals = [
-//   ...Object.keys(devDependencies || {}),
-//   ...Object.keys(dependencies || {}).filter(
-//     d => !whiteListedModules.includes(d)
-//   )
-// ]
-
 let mainConfig = {
   // using -eval- here can trigger security alarm (BL-8994)
   devtool: "cheap-module-source-map",
@@ -48,7 +38,7 @@ let mainConfig = {
   },
   output: {
     filename: "[name].js",
-    libraryTarget: "commonjs2",
+    libraryTarget: "umd",
     path: path.join(__dirname, "../dist/electron"),
   },
   plugins: [

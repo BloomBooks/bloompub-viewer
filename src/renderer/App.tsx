@@ -5,7 +5,7 @@ import { StartScreen } from "./StartScreen";
 import { toast, ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
-import compareVersions from "compare-versions";
+import { compareVersions } from "compare-versions";
 
 let setZipPathStatic: (path: string) => void;
 

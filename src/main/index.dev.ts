@@ -12,6 +12,7 @@ require("electron-debug")({ showDevTools: true });
 
 // Install `react-devtools`
 require("electron").app.on("ready", () => {
+  /*
   require("devtron").install();
 
   let installExtension = require("electron-devtools-installer");
@@ -22,6 +23,8 @@ require("electron").app.on("ready", () => {
     .catch((err: Error) => {
       console.log("Unable to install devtools: \n", err);
     });
+
+    */
 });
 
 // Require `main` process to boot app

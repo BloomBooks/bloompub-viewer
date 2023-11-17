@@ -1,6 +1,6 @@
 {
   "name": "bloompub-viewer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
   "license": "MIT",
@@ -90,23 +90,21 @@
     "deb": {}
   },
   "dependencies": {
+    "@electron/remote": "^2.1.0",
     "@emotion/react": "^11.10.6",
     "@octokit/rest": "^18.0.0",
-    "@types/archiver": "^3.0.0",
     "@types/temp": "^0.8.34",
-    "@types/unzipper": "^0.10.3",
-    "archiver": "^3.1.1",
-    "bloom-player": "^2.1.29",
-    "compare-versions": "^3.6.0",
-    "electron-log": "^4.2.2",
-    "electron-updater": "^4.3.1",
+    "bloom-player": "^2.1.31",
+    "compare-versions": "^6.1.0",
+    "electron-log": "^5.0.0",
+    "electron-updater": "^6.1.4",
     "fs": "^0.0.1-security",
+    "jszip": "^3.10.1",
     "path": "^0.12.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-toastify": "9.0.3",
-    "temp": "^0.9.1",
-    "unzipper": "^0.10.8"
+    "temp": "^0.9.1"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
@@ -119,10 +117,9 @@
     "@babel/preset-typescript": "^7.8.3",
     "@emotion/babel-plugin": "^11.10.6",
     "@emotion/eslint-plugin": "^11.10.0",
-    "@types/electron": "^1.6.10",
     "@types/enzyme": "^3.10.4",
     "@types/enzyme-adapter-react-16": "^1.0.5",
-    "@types/node": "^12.12.27",
+    "@types/node": "^20.9.1",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
@@ -139,10 +136,10 @@
     "css-loader": "^3.4.2",
     "del": "^5.1.0",
     "devtron": "^1.4.0",
-    "electron": "^7.1.11",
-    "electron-builder": "^22.3.2",
-    "electron-debug": "^3.0.1",
-    "electron-devtools-installer": "^2.2.4",
+    "electron": "^27.1.0",
+    "electron-builder": "^24.6.4",
+    "electron-debug": "^3.2.0",
+    "electron-devtools-installer": "^3.2.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
     "enzyme-to-json": "^3.4.4",
@@ -169,7 +166,7 @@
     "tslint": "^6.0.0",
     "typescript": "^4.9.5",
     "url-loader": "^3.0.0",
-    "webpack": "^4.41.5",
+    "webpack": "^4.47.0",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.2",
     "webpack-hot-middleware": "^2.25.0",
@@ -177,7 +174,7 @@
   },
   "packageManager": "yarn@1.22.19",
   "volta": {
-    "node": "16.13.0",
+    "node": "20.9.0",
     "yarn": "1.22.19"
   }
 }

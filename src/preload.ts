@@ -1,4 +1,5 @@
-import { contextBridge, ipcRenderer, remote, shell } from "electron";
+import { contextBridge, ipcRenderer, shell } from "electron";
+import * as remote from "@electron/remote";
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer, remote, and shell without exposing the entire objects

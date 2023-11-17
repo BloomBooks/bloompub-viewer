@@ -152,16 +152,7 @@ function getPathToFont(fontRequested: string) {
 
 app.whenReady().then(() => {
   protocol.handle("bpub", (request: GlobalRequest) => {
-    const path = "file:///" + convertUrlToPath(request.url);
-    const s = net.fetch(path);
-    console.log("bpub protocol request: " + request.url);
-    console.log("will fetch path: " + path);
-    // s.then((response) => {
-    //   console.log(
-    //     "bpub protocol response: " + JSON.stringify(response, null, 2)
-    //   );
-    // });
-    return s;
+    return net.fetch("file:///" + convertUrlToPath(request.url));
   });
 });
 
@@ -265,21 +256,3 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
     });
   });
 });
-
-/**
- * Auto Updater
- *
- * Uncomment the following code below and install `electron-updater` to
- * support auto updating. Code Signing with a valid certificate is required.
- * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-electron-builder.html#auto-updating
- */
-
-/*
-import { autoUpdater } from 'electron-updater'
-autoUpdater.on('update-downloaded', () => {
-  autoUpdater.quitAndInstall()
-})
-app.on('ready', () => {
-  if (process.env.NODE_ENV === 'production') autoUpdater.checkForUpdates()
-})
- */

@@ -50,7 +50,6 @@ function createWindow() {
       nodeIntegration: false,
       webSecurity: true,
       contextIsolation: true,
-      sandbox: false, // TODO: turned this on trying to get preload to work
       preload: preloadPath,
     },
     //windows

@@ -50,12 +50,16 @@ function createWindow() {
       nodeIntegration: false,
       webSecurity: true,
       contextIsolation: true,
+      sandbox: false, // TODO: turned this on trying to get preload to work
       preload: preloadPath,
     },
     //windows
     icon: Path.join(__dirname, "../../assets/windows.ico"),
     title: "BloomPUB Viewer " + require("../../package.json").version,
   });
+
+  require("@electron/remote/main").enable(mainWindow.webContents);
+  require("@electron/remote/main").initialize();
 
   mainWindow.loadURL(winURL);
 

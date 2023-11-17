@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, net, protocol } from "electron";
 import * as fs from "fs";
 import * as unzipper from "unzipper";
 import * as temp from "temp";
@@ -154,8 +154,17 @@ function getPathToFont(fontRequested: string) {
 }
 
 app.whenReady().then(() => {
-  protocol.registerFileProtocol("bpub", (request, callback) => {
-    callback(convertUrlToPath(request.url));
+  protocol.handle("bpub", (request: GlobalRequest) => {
+    const path = "file:///" + convertUrlToPath(request.url);
+    const s = net.fetch(path);
+    console.log("bpub protocol request: " + request.url);
+    console.log("will fetch path: " + path);
+    // s.then((response) => {
+    //   console.log(
+    //     "bpub protocol response: " + JSON.stringify(response, null, 2)
+    //   );
+    // });
+    return s;
   });
 });
 

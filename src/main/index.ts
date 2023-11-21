@@ -207,6 +207,11 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
       return;
     }
 
+    // Keep a list for optimization, so we don't have to keep calling fs.mkdirSync.
+    const directories: Set<string> = new Set<string>();
+    // Seed it with the root directory, since we know that exists.
+    directories.add(unpackedFolder);
+
     jszip.loadAsync(data).then(function (zip) {
       Promise.all(
         Object.keys(zip.files).map(function (filename) {
@@ -219,6 +224,14 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
         Promise.all(
           files.map(function (file) {
             const dest = Path.join(unpackedFolder, file.filename);
+
+            // Ensure the directory exists (create it if not)
+            const dir = Path.dirname(dest);
+            if (!directories.has(dir)) {
+              fs.mkdirSync(dir, { recursive: true });
+              directories.add(dir);
+            }
+
             return new Promise<void>(function (resolve, reject) {
               fs.writeFile(dest, file.content, function (err) {
                 if (err) reject(err);

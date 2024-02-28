@@ -17,9 +17,13 @@ if (process.env.NODE_ENV !== "development") {
 // Register our internal scheme ("bpub") as standard.  A standard scheme adheres to what is
 // called "generic URI syntax".  A standard scheme can resolve both relative and absolute
 // resources correctly when served.  Also register our internal scheme to bypass content
-// security policy for resources.
+// security policy for resources.  The scheme also needs to be registered as supporting
+// streaming.  Without this, the fetch can fail when the resource is larger than 32K.
 protocol.registerSchemesAsPrivileged([
-  { scheme: "bpub", privileges: { standard: true, bypassCSP: true } },
+  {
+    scheme: "bpub",
+    privileges: { standard: true, bypassCSP: true, stream: true },
+  },
 ]);
 
 let mainWindow: BrowserWindow | null;

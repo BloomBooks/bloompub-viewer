@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, shell } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 import * as remote from "@electron/remote";
 
 // Expose protected methods that allow the renderer process to use
@@ -26,13 +26,13 @@ contextBridge.exposeInMainWorld("electronApi", {
     }
   },
   openLibrary: () => {
-    shell.openExternal("https://bloomlibrary.org");
+    remote.shell.openExternal("https://bloomlibrary.org");
   },
   openDownloadPage: (downloadLink: string) => {
     if (
       downloadLink.startsWith("https://github.com/BloomBooks/bloompub-viewer")
     ) {
-      shell.openExternal(downloadLink);
+      remote.shell.openExternal(downloadLink);
     }
   },
 

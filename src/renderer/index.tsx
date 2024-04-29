@@ -110,6 +110,10 @@ export function showOpenFile() {
         name: "BloomPUB Book",
         extensions: ["bloomd", "bloompub"],
       },
+      {
+        name: "Bloom Source Book",
+        extensions: ["bloom", "bloomSource"],
+      },
     ],
   };
   window.electronApi.showOpenDialog(options, (filepath: string) => {

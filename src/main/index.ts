@@ -252,8 +252,10 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
               zipFilePath.length
             );
             filename = bookTitle
-              .replace(/\.bloomd/gi, ".htm")
-              .replace(/\.bloompub/gi, ".htm");
+              .replace(/\.bloomd$/gi, ".htm")
+              .replace(/\.bloompub$/gi, ".htm")
+              .replace(/\.bloomsource$/gi, ".htm")
+              .replace(/\.bloom$/gi, ".htm");
             if (!fs.existsSync(Path.join(unpackedFolder, filename))) {
               // maybe it's the old format AND the user changed the name
               filename =

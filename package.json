@@ -1,6 +1,6 @@
 {
   "name": "bloompub-viewer",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
   "license": "MIT",
@@ -46,6 +46,16 @@
         {
           "ext": "bloomPUB",
           "name": "BloomPUB File",
+          "role": "Viewer"
+        },
+        {
+          "ext": "bloom",
+          "name": "Bloom Source Book File",
+          "role": "Viewer"
+        },
+        {
+          "ext": "bloomSource",
+          "name": "Bloom Source Book File",
           "role": "Viewer"
         }
       ]

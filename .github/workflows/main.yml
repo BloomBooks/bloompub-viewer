@@ -22,9 +22,9 @@ jobs:
 
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v4
-        # remember to keep this in sync with package.json "engines"
+        # remember to keep this in sync with package.json's volta->node setting
         with:
-          node-version: 16
+          node-version: 20
           cache: "yarn" # I always get 'yarn cache is not found' but ah well
 
       - name: Build/release Electron app
@@ -41,3 +41,20 @@ jobs:
           release: true # ${{ startsWith(github.ref, 'refs/tags/v') }}
         env:
           in_github_action: "true"
+
+  sign-installer:
+    runs-on: windows-latest
+    steps:
+      - name: Sign installer
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: sillsdev/codesign/.github/workflows/sign.yml@v2.1
+        with:
+          path: BloomPub*.exe
+          description: BloomPUB Viewer installer
+        secrets:
+          certificate: ${{ secrets.CODESIGN_LSDEVSECTIGOEV }}
+
+      - name: Confirm signature
+        uses: sillsdev/codesign/verify-signature@v2.1
+        with:
+          path: BloomPub*.exe

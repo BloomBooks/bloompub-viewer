@@ -31,49 +31,49 @@ jobs:
         # Let's only do this if the commit is tagged with a version
         #if: startsWith(github.ref, 'refs/tags/v')
         uses: coparse-inc/action-electron-builder@v1.0.0
+        env:
+          in_github_action: "true"
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
 
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          # release: true # ${{ startsWith(github.ref, 'refs/tags/v') }}
+          # Once we can sign on GHA, remove this line and uncomment all the rest of this file, including "release: false"
+          release: true # ${{ startsWith(github.ref, 'refs/tags/v') }}
 
-          release: false
-        env:
-          in_github_action: "true"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: BloomPubViewerSetup
-          path: "**/BloomPub*.exe"
-          if-no-files-found: error
+  #         release: false
 
-  sign-installer:
-    name: Sign installer
-    needs: build-installer
-    #if: startsWith(github.ref, 'refs/tags/v')
-    uses: sillsdev/codesign/.github/workflows/sign.yml@v2.1
-    with:
-      artifact: BloomPubViewerSetup
-    secrets:
-      certificate: ${{ secrets.CODESIGN_LSDEVSECTIGOEV }}
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: BloomPubViewerSetup
+  #         path: "**/BloomPub*.exe"
+  #         if-no-files-found: error
 
-  create-release:
-    name: Create Release
-    needs: sign-installer
-    runs-on: windows-latest
+  # sign-installer:
+  #   name: Sign installer
+  #   needs: build-installer
+  #   #if: startsWith(github.ref, 'refs/tags/v')
+  #   uses: sillsdev/codesign/.github/workflows/sign.yml@v2.1
+  #   with:
+  #     artifact: BloomPubViewerSetup
+  #   secrets:
+  #     certificate: ${{ secrets.CODESIGN_LSDEVSECTIGOEV }}
 
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: BloomPubViewerSetup
+  # create-release:
+  #   name: Create Release
+  #   needs: sign-installer
+  #   runs-on: windows-latest
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: "**/BloomPub*.exe"
-          body: |
-            Release for version ${{ github.ref }}
-          draft: true
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: BloomPubViewerSetup
+
+  #     - name: Create Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: "**/BloomPub*.exe"
+  #         body: |
+  #           Release for version ${{ github.ref }}
+  #         draft: true

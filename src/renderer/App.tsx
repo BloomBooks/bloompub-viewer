@@ -62,7 +62,9 @@ function checkForNewVersion() {
             draggable: true,
             progress: undefined,
             onClick: () => {
-              window.electronApi.openDownloadPage(data.data.html_url);
+              window.electronApi.openDownloadPage(
+                "https://bloomlibrary.org/bloompub-viewer"
+              );
             },
           }
         );

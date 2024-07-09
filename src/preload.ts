@@ -29,9 +29,7 @@ contextBridge.exposeInMainWorld("electronApi", {
     remote.shell.openExternal("https://bloomlibrary.org");
   },
   openDownloadPage: (downloadLink: string) => {
-    if (
-      downloadLink.startsWith("https://github.com/BloomBooks/bloompub-viewer")
-    ) {
+    if (downloadLink.startsWith("https://bloomlibrary.org")) {
       remote.shell.openExternal(downloadLink);
     }
   },

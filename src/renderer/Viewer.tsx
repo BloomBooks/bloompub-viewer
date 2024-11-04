@@ -28,7 +28,19 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
     <div className="App">
       {htmPath && (
         <iframe
-          style={{ width: "100%", height: "100%", border: "none" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            border: "none",
+            // For a reason I still don't understand, setting all heights to 100% gives us a vertical scrollbar.
+            // To make it go away, you have to set the iframe height to `calc(100% - 4px)`.
+            // The following 5 lines work around this.
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
           src={iframeSource}
         />
       )}

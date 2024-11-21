@@ -1,6 +1,6 @@
 {
   "name": "bloompub-viewer",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
   "license": "MIT",
@@ -104,7 +104,7 @@
     "@emotion/react": "^11.10.6",
     "@octokit/rest": "^18.0.0",
     "@types/temp": "^0.8.34",
-    "bloom-player": "^2.2",
+    "bloom-player": "^2.7.0",
     "compare-versions": "^6.1.0",
     "electron-log": "^5.0.0",
     "electron-updater": "^6.1.4",

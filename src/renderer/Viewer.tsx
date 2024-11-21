@@ -32,16 +32,7 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
             width: "100%",
             height: "100%",
             border: "none",
-            // For a reason I still don't understand, setting all heights to 100% gives us a vertical scrollbar.
-            // As far as I can tell, there is an electron bug causing it to add 4px to the height of the iframe.
-            // But the inspector says the iframe height is the same as its parent and content, as it should be.
-            // If you set the iframe height to `calc(100% - 4px)`, the scrollbar goes away, but the 4px white bar remains at the bottom.
-            // The following 5 lines work around this.
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            display: "block", // Prevent a 4px white bar at the bottom of the iframe. See BL-14065 and BL-14049.
           }}
           src={iframeSource}
         />

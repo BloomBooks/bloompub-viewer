@@ -80,5 +80,13 @@ interface Window {
     setApplicationMenu: (template: Array<any>) => void;
     showOpenDialog: (options: any, func) => void;
     getCurrentAppVersion: () => string;
+    getRecentBooks: () => Array<RecentBook>;
+    addRecentBook: (book: RecentBook) => void;
   };
+}
+
+interface RecentBook {
+  path: string;
+  title: string;
+  thumbnail?: string;
 }

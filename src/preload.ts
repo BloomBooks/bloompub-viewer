@@ -64,4 +64,12 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   getCurrentAppVersion: () => {
     return require("../package.json").version;
   },
+
+  getRecentBooks: () => {
+    return ipcRenderer.sendSync("get-recent-books");
+  },
+
+  addRecentBook: (book) => {
+    ipcRenderer.send("add-recent-book", book);
+  },
 });

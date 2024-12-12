@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as temp from "temp";
 import * as Path from "path";
 import * as jszip from "jszip";
+import Store from "electron-store";
 
 /**
  * Set `__static` path to static files in production
@@ -274,4 +275,34 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
       });
     });
   });
+});
+
+interface StoreSchema {
+  recentBooks: Array<{
+    path: string;
+    title: string;
+    thumbnail?: string;
+  }>;
+}
+
+const store = new Store<StoreSchema>({
+  defaults: {
+    recentBooks: [],
+  },
+});
+
+ipcMain.on("get-recent-books", (event) => {
+  const recentBooks = store.get("recentBooks");
+  event.returnValue = recentBooks;
+});
+
+ipcMain.on("add-recent-book", (event, book) => {
+  let recentBooks = store.get("recentBooks");
+  // Remove if already exists
+  recentBooks = recentBooks.filter((b) => b.path !== book.path);
+  // Add to front
+  recentBooks.unshift(book);
+  // Keep only 5 most recent
+  recentBooks = recentBooks.slice(0, 5);
+  store.set("recentBooks", recentBooks);
 });

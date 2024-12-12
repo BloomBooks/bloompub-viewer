@@ -266,6 +266,34 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
                 "no htm file found";
             }
           }
+
+          // Check for thumbnail
+          let thumbnailData = "";
+          const thumbnailPath = Path.join(unpackedFolder, "thumbnail.png");
+          if (fs.existsSync(thumbnailPath)) {
+            try {
+              const thumbBuffer = fs.readFileSync(thumbnailPath);
+              thumbnailData = `data:image/png;base64,${thumbBuffer.toString("base64")}`;
+            } catch (error) {
+              console.log("Error reading thumbnail:", error);
+            }
+          }
+
+          // Add book to recent books
+          const normalizedPath = zipFilePath.replace(/\\/g, "/");
+          const bookInfo = {
+            path: zipFilePath,
+            title: Path.basename(normalizedPath, Path.extname(normalizedPath)),
+            thumbnail: thumbnailData,
+          };
+
+          // Update recent books
+          let recentBooks = store.get("recentBooks");
+          recentBooks = recentBooks.filter((b) => b.path !== bookInfo.path);
+          recentBooks.unshift(bookInfo);
+          recentBooks = recentBooks.slice(0, 5);
+          store.set("recentBooks", recentBooks);
+
           event.reply(
             "zip-file-unpacked",
             zipFilePath,
@@ -299,15 +327,15 @@ ipcMain.on("get-recent-books", (event) => {
   event.returnValue = recentBooks;
 });
 
-ipcMain.on("add-recent-book", (event, book) => {
-  //console.log("Adding recent book:", JSON.stringify(book, null, 2));
-  let recentBooks = store.get("recentBooks");
-  // Remove if already exists
-  recentBooks = recentBooks.filter((b) => b.path !== book.path);
-  // Add to front
-  recentBooks.unshift(book);
-  // Keep only 5 most recent
-  recentBooks = recentBooks.slice(0, 5);
-  //console.log("Updated recent books:", JSON.stringify(recentBooks, null, 2));
-  store.set("recentBooks", recentBooks);
-});
+// ipcMain.on("add-recent-book", (event, book) => {
+//   //console.log("Adding recent book:", JSON.stringify(book, null, 2));
+//   let recentBooks = store.get("recentBooks");
+//   // Remove if already exists
+//   recentBooks = recentBooks.filter((b) => b.path !== book.path);
+//   // Add to front
+//   recentBooks.unshift(book);
+//   // Keep only 5 most recent
+//   recentBooks = recentBooks.slice(0, 5);
+//   //console.log("Updated recent books:", JSON.stringify(recentBooks, null, 2));
+//   store.set("recentBooks", recentBooks);
+// });

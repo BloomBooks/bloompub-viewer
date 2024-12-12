@@ -30,22 +30,16 @@ const App: React.FunctionComponent<{
   setZipPathStatic = setZipPath;
 
   useEffect(() => {
-    if (zipPath) {
-      const normalizedPath = zipPath.replace(/\\/g, "/"); // Convert Windows backslashes to forward slashes
-      const bookInfo = {
-        path: zipPath,
-        title: Path.basename(normalizedPath, Path.extname(normalizedPath)), // Simply get basename and remove extension
-        thumbnail: "", // Enhance: we could store a binhex contents of the thumbnail?
-      };
-      console.log("Adding book to recent: ", JSON.stringify(bookInfo, null, 2));
-      window.bloomPubViewMainApi.addRecentBook(bookInfo);
-      // Update the local state with the new book
-      setRecentBooks((currentBooks) => {
-        const newBooks = currentBooks?.filter((b) => b.path !== bookInfo.path);
-        return [bookInfo, ...newBooks].slice(0, 5);
-      });
-    }
-  }, [zipPath]);
+    window.bloomPubViewMainApi.receive(
+      "zip-file-unpacked",
+      (origZip: string, indexPath: string) => {
+        setZipPath(indexPath);
+        // Update local state from main process
+        const recentBooks = window.bloomPubViewMainApi.getRecentBooks();
+        setRecentBooks(recentBooks);
+      }
+    );
+  }, []);
 
   console.log("Rendering with recent books:", recentBooks);
   checkForNewVersion();

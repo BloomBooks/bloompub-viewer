@@ -69,7 +69,7 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
     return ipcRenderer.sendSync("get-recent-books");
   },
 
-  addRecentBook: (book) => {
-    ipcRenderer.send("add-recent-book", book);
-  },
+  // addRecentBook: (book) => {
+  //   ipcRenderer.send("add-recent-book", book);
+  // },
 });

@@ -286,6 +286,8 @@ interface StoreSchema {
 }
 
 const store = new Store<StoreSchema>({
+  // set the name
+  name: "bloompub-viewer-prefs",
   defaults: {
     recentBooks: [],
   },

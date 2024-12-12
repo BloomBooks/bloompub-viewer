@@ -5,6 +5,7 @@ import { showOpenFile, openFile } from ".";
 import wordmark from "../../assets/wordmark.svg";
 import search from "../../assets/Search.svg";
 import open from "../../assets/Open.svg";
+import bookPlaceholder from "../../assets/book-placeholder.svg";
 
 interface RecentBook {
   path: string;
@@ -109,27 +110,37 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
 
                 button {
                   border: none;
-                  background: none;
+                  background: white;
                   cursor: pointer;
-                  padding: 10px;
+                  padding: 15px;
                   transition: all 0.2s ease;
                   text-align: left;
+                  border-radius: 8px;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
                   &:hover {
-                    transform: scale(1.02);
-                    background-color: rgba(214, 86, 73, 0.05);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(214, 86, 73, 0.2);
+                  }
+
+                  &:active {
+                    transform: translateY(0px);
+                    box-shadow: 0 2px 4px rgba(214, 86, 73, 0.1);
                   }
 
                   img {
                     width: 100%;
-                    height: 120px;
+                    height: 60px;
                     object-fit: cover;
-                    margin-bottom: 8px;
+                    margin-bottom: 10px;
+                    border-radius: 4px;
                   }
 
                   .title {
                     color: #d65649;
                     font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.3;
                   }
                 }
               }
@@ -139,9 +150,10 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
             <div className="recent-books">
               {recentBooks.slice(0, 3).map((book, index) => (
                 <button key={index} onClick={() => openFile(book.path)}>
-                  {book.thumbnail && (
-                    <img src={book.thumbnail} alt={book.title} />
-                  )}
+                  <img
+                    src={book.thumbnail || bookPlaceholder}
+                    alt={book.title}
+                  />
                   <div className="title">{book.title}</div>
                 </button>
               ))}

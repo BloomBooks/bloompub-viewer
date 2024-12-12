@@ -199,6 +199,12 @@ ipcMain.on("get-file-that-launched-me", (event, arg) => {
   }
 });
 
+ipcMain.on("get-recent-books", (event) => {
+  event.returnValue = store
+    .get("recentBooks")
+    .filter((b) => fs.existsSync(b.path));
+});
+
 ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
   const slashIndex = zipFilePath.replace(/\\/g, "/").lastIndexOf("/");
   const unpackedFolder = temp.mkdirSync("bloomPUB-viewer-");
@@ -252,6 +258,7 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
               slashIndex + 1,
               zipFilePath.length
             );
+
             filename = bookTitle
               .replace(/\.bloomd$/gi, ".htm")
               .replace(/\.bloompub$/gi, ".htm")
@@ -267,32 +274,7 @@ ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
             }
           }
 
-          // Check for thumbnail
-          let thumbnailData = "";
-          const thumbnailPath = Path.join(unpackedFolder, "thumbnail.png");
-          if (fs.existsSync(thumbnailPath)) {
-            try {
-              const thumbBuffer = fs.readFileSync(thumbnailPath);
-              thumbnailData = `data:image/png;base64,${thumbBuffer.toString("base64")}`;
-            } catch (error) {
-              console.log("Error reading thumbnail:", error);
-            }
-          }
-
-          // Add book to recent books
-          const normalizedPath = zipFilePath.replace(/\\/g, "/");
-          const bookInfo = {
-            path: zipFilePath,
-            title: Path.basename(normalizedPath, Path.extname(normalizedPath)),
-            thumbnail: thumbnailData,
-          };
-
-          // Update recent books
-          let recentBooks = store.get("recentBooks");
-          recentBooks = recentBooks.filter((b) => b.path !== bookInfo.path);
-          recentBooks.unshift(bookInfo);
-          recentBooks = recentBooks.slice(0, 5);
-          store.set("recentBooks", recentBooks);
+          updateRecentBooksList(zipFilePath, unpackedFolder);
 
           event.reply(
             "zip-file-unpacked",
@@ -313,29 +295,61 @@ interface StoreSchema {
   }>;
 }
 
+function updateRecentBooksList(zipFilePath: string, unpackedFolder: string) {
+  // tell the OS that we opened this file for use in docks and such
+  app.addRecentDocument(zipFilePath);
+
+  const stringEncodedThumbnail = getThumbnailEncodedAsString(unpackedFolder);
+
+  const normalizedPath = zipFilePath.replace(/\\/g, "/");
+  const bookInfo = {
+    path: zipFilePath,
+    title: Path.basename(normalizedPath, Path.extname(normalizedPath)).replace(
+      /\+/g,
+      " "
+    ),
+    thumbnail: stringEncodedThumbnail,
+  };
+
+  // add or update, making this the first one in the list
+  let recentBooks = store.get("recentBooks");
+  recentBooks = recentBooks.filter((b) => b.path !== bookInfo.path);
+  recentBooks.unshift(bookInfo);
+  recentBooks = recentBooks.slice(0, 5);
+  store.set("recentBooks", recentBooks);
+}
+
 const store = new Store<StoreSchema>({
-  // set the name
   name: "bloompub-viewer-prefs",
   defaults: {
     recentBooks: [],
   },
 });
 
-ipcMain.on("get-recent-books", (event) => {
-  const recentBooks = store.get("recentBooks");
-  //console.log("Sending recent books:", JSON.stringify(recentBooks, null, 2));
-  event.returnValue = recentBooks;
-});
+function getThumbnailEncodedAsString(unpackedFolder: string): string {
+  // Try PNG first
+  const pngPath = Path.join(unpackedFolder, "thumbnail.png");
+  if (fs.existsSync(pngPath)) {
+    try {
+      console.log("reading thumbnail:", pngPath);
+      const thumbBuffer = fs.readFileSync(pngPath);
+      return `data:image/png;base64,${thumbBuffer.toString("base64")}`;
+    } catch (error) {
+      console.log("Error reading thumbnail:", error);
+    }
+  }
 
-// ipcMain.on("add-recent-book", (event, book) => {
-//   //console.log("Adding recent book:", JSON.stringify(book, null, 2));
-//   let recentBooks = store.get("recentBooks");
-//   // Remove if already exists
-//   recentBooks = recentBooks.filter((b) => b.path !== book.path);
-//   // Add to front
-//   recentBooks.unshift(book);
-//   // Keep only 5 most recent
-//   recentBooks = recentBooks.slice(0, 5);
-//   //console.log("Updated recent books:", JSON.stringify(recentBooks, null, 2));
-//   store.set("recentBooks", recentBooks);
-// });
+  // Try JPG if PNG doesn't exist
+  const jpgPath = Path.join(unpackedFolder, "thumbnail.jpg");
+  if (fs.existsSync(jpgPath)) {
+    try {
+      console.log("reading thumbnail:", jpgPath);
+      const thumbBuffer = fs.readFileSync(jpgPath);
+      return `data:image/jpeg;base64,${thumbBuffer.toString("base64")}`;
+    } catch (error) {
+      console.log("Error reading thumbnail:", error);
+    }
+  }
+
+  return "";
+}

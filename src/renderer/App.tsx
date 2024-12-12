@@ -6,27 +6,17 @@ import { toast, ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
 import { compareVersions } from "compare-versions";
-import Path from "path";
 
 let setZipPathStatic: (path: string) => void;
 
 // Make react-toastify styles work (without a css loader and without copying the css file into our code)
 injectStyle();
 
-interface RecentBook {
-  path: string;
-  thumbnail?: string;
-  title: string;
-}
-
 const App: React.FunctionComponent<{
   initialFilePath: string;
-  recentBooks: RecentBook[];
 }> = (props) => {
   const [zipPath, setZipPath] = useState(props.initialFilePath);
-  const [recentBooks, setRecentBooks] = useState<RecentBook[]>(
-    props.recentBooks
-  );
+
   setZipPathStatic = setZipPath;
 
   useEffect(() => {
@@ -34,21 +24,17 @@ const App: React.FunctionComponent<{
       "zip-file-unpacked",
       (origZip: string, indexPath: string) => {
         setZipPath(indexPath);
-        // Update local state from main process
-        const recentBooks = window.bloomPubViewMainApi.getRecentBooks();
-        setRecentBooks(recentBooks);
       }
     );
   }, []);
 
-  console.log("Rendering with recent books:", recentBooks);
   checkForNewVersion();
 
   return (
     <>
       <ToastContainer></ToastContainer>
       {(zipPath && <Viewer zipFilePath={zipPath} />) || (
-        <StartScreen recentBooks={recentBooks}></StartScreen>
+        <StartScreen></StartScreen>
       )}
     </>
   );

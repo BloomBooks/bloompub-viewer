@@ -8,10 +8,9 @@ updateMainMenu();
 const zipFilePath = window.bloomPubViewMainApi.sendSync(
   "get-file-that-launched-me"
 );
-const recentBooks = window.bloomPubViewMainApi.getRecentBooks();
 
 const root = createRoot(document.getElementById("root")!);
-root.render(<App initialFilePath={zipFilePath} recentBooks={recentBooks} />); // React 18+ syntax / rendering mode.
+root.render(<App initialFilePath={zipFilePath} />); // React 18+ syntax / rendering mode.
 
 function updateMainMenu() {
   const macMenu = {

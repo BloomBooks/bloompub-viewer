@@ -1,11 +1,10 @@
 import { css } from "@emotion/react";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { showOpenFile, openFile } from ".";
 import wordmark from "../../assets/wordmark.svg";
 import search from "../../assets/Search.svg";
 import open from "../../assets/Open.svg";
-import bookPlaceholder from "../../assets/book-placeholder.svg";
 
 interface RecentBook {
   path: string;
@@ -13,18 +12,20 @@ interface RecentBook {
   title: string;
 }
 
-interface StartScreenProps {
-  recentBooks: RecentBook[];
-}
+export const StartScreen: React.FunctionComponent = () => {
+  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
+  useEffect(() => {
+    setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
+  }, []);
 
-export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
-  recentBooks,
-}) => {
-  console.log("StartScreen rendering with books:", recentBooks);
+  //console.log("StartScreen rendering with books:", recentBooks);
   return (
     <div
       css={css`
         display: flex;
+        * {
+          color: #d65649;
+        }
       `}
     >
       <div
@@ -48,11 +49,11 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
             button {
               display: flex;
               align-items: center;
-              color: #d65649;
+
               font-size: 24px;
               background: none;
               border: none;
-              padding: 10px;
+              padding: 0;
               cursor: pointer;
               transition: all 0.2s ease;
               width: 100%;
@@ -96,9 +97,7 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
               margin-top: 30px;
               border-top: 1px solid rgba(214, 86, 73, 0.2);
               padding-top: 20px;
-
               h2 {
-                color: #d65649;
                 font-size: 18px;
                 margin-bottom: 15px;
               }
@@ -109,14 +108,19 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
                 gap: 15px;
 
                 button {
+                  display: flex;
+                  flex-direction: column;
+                  width: 140px;
+                  height: 170px;
                   border: none;
                   background: white;
                   cursor: pointer;
-                  padding: 15px;
+                  padding: 0;
+                  padding-bottom: 10px;
                   transition: all 0.2s ease;
-                  text-align: left;
                   border-radius: 8px;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  overflow: hidden;
 
                   &:hover {
                     transform: translateY(-2px);
@@ -128,33 +132,66 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
                     box-shadow: 0 2px 4px rgba(214, 86, 73, 0.1);
                   }
 
-                  img {
-                    width: 100%;
-                    height: 60px;
-                    object-fit: cover;
-                    margin-bottom: 10px;
-                    border-radius: 4px;
-                  }
-
                   .title {
-                    color: #d65649;
-                    font-size: 14px;
-                    font-weight: 500;
-                    line-height: 1.3;
+                    width: 140px;
+                    box-sizing: border-box;
+                    padding: 8px;
+                    font-size: 14pt;
+                    overflow: hidden;
+
+                    span {
+                      display: -webkit-box;
+                      -webkit-line-clamp: 2;
+                      -webkit-box-orient: vertical;
+                      overflow: hidden;
+                      //color: black;
+                      font-family: "Andika", sans-serif;
+                    }
                   }
                 }
               }
             `}
           >
-            <h2>Recent Books ({recentBooks.length})</h2>
+            <div
+              css={css`
+                font-size: 24px;
+                margin-bottom: 10px;
+              `}
+            >
+              Recent Books
+            </div>
             <div className="recent-books">
-              {recentBooks.slice(0, 3).map((book, index) => (
-                <button key={index} onClick={() => openFile(book.path)}>
-                  <img
-                    src={book.thumbnail || bookPlaceholder}
-                    alt={book.title}
-                  />
-                  <div className="title">{book.title}</div>
+              {recentBooks.slice(0, 6).map((book, index) => (
+                <button
+                  className="book"
+                  key={index}
+                  onClick={() => openFile(book.path)}
+                  title={book.path}
+                >
+                  <div
+                    css={css`
+                      height: 100px;
+                      width: 140px;
+
+                      display: flex;
+                    `}
+                  >
+                    {book.thumbnail && (
+                      <img
+                        src={book.thumbnail}
+                        alt={book.title}
+                        css={css`
+                          height: 100px;
+                          width: 140px;
+                          object-fit: cover;
+                          object-position: center top;
+                        `}
+                      />
+                    )}
+                  </div>
+                  <div className="title">
+                    <span>{book.title}</span>
+                  </div>
                 </button>
               ))}
             </div>

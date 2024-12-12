@@ -21,7 +21,7 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
   const rawUrl = getUrlFromFilePath(htmPath);
   console.log(`path = ${htmPath} (encoded to ${rawUrl})`);
 
-  const iframeSource = `${bloomPlayerProtocol}${bloomPlayerHtml}?allowToggleAppBar=true&url=${rawUrl}&host=bloompubviewer`;
+  const iframeSource = `${bloomPlayerProtocol}${bloomPlayerHtml}?allowToggleAppBar=true&url=${rawUrl}&host=bloompubviewer&showBackButton=true`;
   console.log(`iframe src set to ${iframeSource}`);
 
   return (

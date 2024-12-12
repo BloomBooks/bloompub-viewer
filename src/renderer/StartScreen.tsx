@@ -95,8 +95,7 @@ export const StartScreen: React.FunctionComponent = () => {
           <div
             css={css`
               margin-top: 30px;
-              border-top: 1px solid rgba(214, 86, 73, 0.2);
-              padding-top: 20px;
+              //border-top: 1px solid rgba(214, 86, 73, 0.2);
               h2 {
                 font-size: 18px;
                 margin-bottom: 15px;

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { showBook } from "./App";
 
 const bloomPlayerProtocol = "bpub://bloom-player/";
 const bloomPlayerHtml = "bloomplayer.htm";
@@ -16,6 +17,16 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
         }
       }
     );
+
+    const handleBackButton = (event: MessageEvent) => {
+      // try to part the event.data into an object
+      const data = JSON.parse(event.data);
+      if (data.messageType === "backButtonClicked") {
+        showBook("");
+      }
+    };
+    window.addEventListener("message", handleBackButton);
+    return () => window.removeEventListener("message", handleBackButton);
   }, [props.zipFilePath]);
 
   const rawUrl = getUrlFromFilePath(htmPath);

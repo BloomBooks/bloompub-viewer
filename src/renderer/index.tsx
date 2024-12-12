@@ -122,3 +122,7 @@ export function showOpenFile() {
     }
   });
 }
+
+export function openFile(filePath: string) {
+  showBook(filePath);
+}

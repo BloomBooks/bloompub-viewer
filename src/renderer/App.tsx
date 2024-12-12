@@ -12,9 +12,17 @@ let setZipPathStatic: (path: string) => void;
 // Make react-toastify styles work (without a css loader and without copying the css file into our code)
 injectStyle();
 
+interface RecentBook {
+  path: string;
+  thumbnail: string;
+  title: string;
+}
+
 const App: React.FunctionComponent<{ initialFilePath: string }> = (props) => {
   const [zipPath, setZipPath] = useState(props.initialFilePath);
+  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
   setZipPathStatic = setZipPath;
+
   useEffect(() => {
     if (zipPath) {
       window.electronApi.addRecentDocument(zipPath);
@@ -26,7 +34,7 @@ const App: React.FunctionComponent<{ initialFilePath: string }> = (props) => {
     <>
       <ToastContainer></ToastContainer>
       {(zipPath && <Viewer zipFilePath={zipPath} />) || (
-        <StartScreen></StartScreen>
+        <StartScreen recentBooks={recentBooks}></StartScreen>
       )}
     </>
   );

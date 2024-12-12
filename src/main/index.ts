@@ -293,10 +293,12 @@ const store = new Store<StoreSchema>({
 
 ipcMain.on("get-recent-books", (event) => {
   const recentBooks = store.get("recentBooks");
+  //console.log("Sending recent books:", JSON.stringify(recentBooks, null, 2));
   event.returnValue = recentBooks;
 });
 
 ipcMain.on("add-recent-book", (event, book) => {
+  //console.log("Adding recent book:", JSON.stringify(book, null, 2));
   let recentBooks = store.get("recentBooks");
   // Remove if already exists
   recentBooks = recentBooks.filter((b) => b.path !== book.path);
@@ -304,5 +306,6 @@ ipcMain.on("add-recent-book", (event, book) => {
   recentBooks.unshift(book);
   // Keep only 5 most recent
   recentBooks = recentBooks.slice(0, 5);
+  //console.log("Updated recent books:", JSON.stringify(recentBooks, null, 2));
   store.set("recentBooks", recentBooks);
 });

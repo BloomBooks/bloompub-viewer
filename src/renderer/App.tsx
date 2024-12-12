@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
 import { compareVersions } from "compare-versions";
+import Path from "path";
 
 let setZipPathStatic: (path: string) => void;
 
@@ -14,20 +15,39 @@ injectStyle();
 
 interface RecentBook {
   path: string;
-  thumbnail: string;
+  thumbnail?: string;
   title: string;
 }
 
-const App: React.FunctionComponent<{ initialFilePath: string }> = (props) => {
+const App: React.FunctionComponent<{
+  initialFilePath: string;
+  recentBooks: RecentBook[];
+}> = (props) => {
   const [zipPath, setZipPath] = useState(props.initialFilePath);
-  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
+  const [recentBooks, setRecentBooks] = useState<RecentBook[]>(
+    props.recentBooks
+  );
   setZipPathStatic = setZipPath;
 
   useEffect(() => {
     if (zipPath) {
-      window.bloomPubViewMainApi.addRecentDocument(zipPath);
+      const normalizedPath = zipPath.replace(/\\/g, "/"); // Convert Windows backslashes to forward slashes
+      const bookInfo = {
+        path: zipPath,
+        title: Path.basename(normalizedPath, Path.extname(normalizedPath)), // Simply get basename and remove extension
+        thumbnail: "", // Enhance: we could store a binhex contents of the thumbnail?
+      };
+      console.log("Adding book to recent: ", JSON.stringify(bookInfo, null, 2));
+      window.bloomPubViewMainApi.addRecentBook(bookInfo);
+      // Update the local state with the new book
+      setRecentBooks((currentBooks) => {
+        const newBooks = currentBooks?.filter((b) => b.path !== bookInfo.path);
+        return [bookInfo, ...newBooks].slice(0, 5);
+      });
     }
   }, [zipPath]);
+
+  console.log("Rendering with recent books:", recentBooks);
   checkForNewVersion();
 
   return (

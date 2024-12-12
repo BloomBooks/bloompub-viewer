@@ -8,7 +8,7 @@ import open from "../../assets/Open.svg";
 
 interface RecentBook {
   path: string;
-  thumbnail: string;
+  thumbnail?: string;
   title: string;
 }
 
@@ -19,6 +19,7 @@ interface StartScreenProps {
 export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
   recentBooks,
 }) => {
+  console.log("StartScreen rendering with books:", recentBooks);
   return (
     <div
       css={css`
@@ -134,11 +135,13 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
               }
             `}
           >
-            <h2>Recent Books</h2>
+            <h2>Recent Books ({recentBooks.length})</h2>
             <div className="recent-books">
               {recentBooks.slice(0, 3).map((book, index) => (
                 <button key={index} onClick={() => openFile(book.path)}>
-                  <img src={book.thumbnail} alt={book.title} />
+                  {book.thumbnail && (
+                    <img src={book.thumbnail} alt={book.title} />
+                  )}
                   <div className="title">{book.title}</div>
                 </button>
               ))}

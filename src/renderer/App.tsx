@@ -25,7 +25,7 @@ const App: React.FunctionComponent<{ initialFilePath: string }> = (props) => {
 
   useEffect(() => {
     if (zipPath) {
-      window.electronApi.addRecentDocument(zipPath);
+      window.bloomPubViewMainApi.addRecentDocument(zipPath);
     }
   }, [zipPath]);
   checkForNewVersion();
@@ -56,7 +56,7 @@ function checkForNewVersion() {
       if (
         compareVersions(
           publishedVersion,
-          window.electronApi.getCurrentAppVersion()
+          window.bloomPubViewMainApi.getCurrentAppVersion()
         ) > 0
       ) {
         toast.success(
@@ -70,7 +70,7 @@ function checkForNewVersion() {
             draggable: true,
             progress: undefined,
             onClick: () => {
-              window.electronApi.openDownloadPage(
+              window.bloomPubViewMainApi.openDownloadPage(
                 "https://bloomlibrary.org/bloompub-viewer"
               );
             },

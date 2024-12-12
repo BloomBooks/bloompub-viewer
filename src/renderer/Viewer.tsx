@@ -7,8 +7,8 @@ export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
 ) => {
   const [htmPath, setHtmPath] = useState("");
   useEffect(() => {
-    window.electronApi.send("unpack-zip-file", props.zipFilePath);
-    window.electronApi.receive(
+    window.bloomPubViewMainApi.send("unpack-zip-file", props.zipFilePath);
+    window.bloomPubViewMainApi.receive(
       "zip-file-unpacked",
       (origZip: string, indexPath: string) => {
         if (origZip === props.zipFilePath) {

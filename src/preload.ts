@@ -3,7 +3,7 @@ import * as remote from "@electron/remote";
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer, remote, and shell without exposing the entire objects
-contextBridge.exposeInMainWorld("electronApi", {
+contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   sendSync: (channel: string, data) => {
     // whitelist channels
     let validChannels = ["get-file-that-launched-me", "toggleFullScreen"];

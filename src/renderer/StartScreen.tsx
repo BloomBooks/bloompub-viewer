@@ -80,7 +80,7 @@ export const StartScreen: React.FunctionComponent<StartScreenProps> = ({
           <br />
           <button
             onClick={() => {
-              window.electronApi.openLibrary();
+              window.bloomPubViewMainApi.openLibrary();
             }}
           >
             <img src={search} />

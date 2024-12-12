@@ -31,32 +31,49 @@ export const StartScreen: React.FunctionComponent<{}> = (props) => {
           className={"choices"}
           css={css`
             margin-top: 20px;
-            a {
+            button {
               display: flex;
+              align-items: center;
               color: #d65649;
               font-size: 24px;
-              //text-decoration: underline;
+              background: none;
+              border: none;
+              padding: 10px;
               cursor: pointer;
+              transition: all 0.2s ease;
+              width: 100%;
+
               img {
                 width: 30px;
                 margin-right: 15px;
               }
+
+              &:hover {
+                transform: scale(1.02);
+                color: #e06357;
+                background-color: rgba(214, 86, 73, 0.05);
+              }
+
+              &:active {
+                transform: scale(0.98);
+                color: #c04d41;
+              }
             }
           `}
         >
-          <a onClick={() => showOpenFile()}>
-            <img src={open} css={css``} />
+          <button onClick={() => showOpenFile()}>
+            <img src={open} />
             Choose BloomPUB book on this computer
-          </a>
+          </button>
           <br />
-          <a
+          <button
             onClick={() => {
               window.electronApi.openLibrary();
             }}
           >
-            <img src={search} css={css``} />
+            <img src={search} />
             Get BloomPUB books on BloomLibrary.org
-          </a>
+          </button>
         </div>
       </div>
     </div>

@@ -25,3 +25,5 @@ yarn-error.log*
 .yarn/*
 
 *.orig
+
+.bloompubViewer-bookId-cache.json

@@ -1,42 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 const bloomPlayerProtocol = "bpub://bloom-player/";
 const bloomPlayerHtml = "bloomplayer.htm";
-export const Viewer: React.FunctionComponent<{ zipFilePath: string }> = (
-  props
-) => {
-  const [htmPath, setHtmPath] = useState("");
-  useEffect(() => {
-    window.electronApi.send("unpack-zip-file", props.zipFilePath);
-    window.electronApi.receive(
-      "zip-file-unpacked",
-      (origZip: string, indexPath: string) => {
-        if (origZip === props.zipFilePath) {
-          setHtmPath(indexPath);
-        }
-      }
-    );
-  }, [props.zipFilePath]);
-
-  const rawUrl = getUrlFromFilePath(htmPath);
-  console.log(`path = ${htmPath} (encoded to ${rawUrl})`);
+export const Viewer: React.FunctionComponent<{
+  unpackedPath: string;
+}> = (props) => {
+  const rawUrl = getUrlFromFilePath(props.unpackedPath);
+  console.log(`path = ${props.unpackedPath} (encoded to ${rawUrl})`);
 
   const iframeSource = `${bloomPlayerProtocol}${bloomPlayerHtml}?allowToggleAppBar=true&url=${rawUrl}&host=bloompubviewer`;
   console.log(`iframe src set to ${iframeSource}`);
 
   return (
     <div className="App">
-      {htmPath && (
-        <iframe
-          style={{
-            width: "100%",
-            height: "100%",
-            border: "none",
-            display: "block", // Prevent a 4px white bar at the bottom of the iframe. See BL-14065 and BL-14049.
-          }}
-          src={iframeSource}
-        />
-      )}
+      <iframe
+        style={{
+          width: "100%",
+          height: "100%",
+          border: "none",
+          display: "block", // Prevent a 4px white bar at the bottom of the iframe. See BL-14065 and BL-14049.
+        }}
+        src={iframeSource}
+      />
     </div>
   );
 }; ////https://s3.amazonaws.com/bloomharvest/benjamin%40aconnectedplanet.org%2f130b6829-5367-4e5c-80d7-ec588aae5281/bloomdigital%2findex.htm"

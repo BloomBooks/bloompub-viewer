@@ -1,14 +1,13 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App, { showBook } from "./App";
 import { toast } from "react-toastify";
+import { App, openNewPrimaryBloomPub } from "./App";
 updateMainMenu();
 const zipFilePath = window.electronApi.sendSync("get-file-that-launched-me");
 
 const root = createRoot(document.getElementById("root")!);
-root.render(<App initialFilePath={zipFilePath} />); // React 18+ syntax / rendering mode.
+root.render(<App initialBloomPubPath={zipFilePath} />); // React 18+ syntax / rendering mode.
 
 function updateMainMenu() {
   const macMenu = {
@@ -38,7 +37,7 @@ function updateMainMenu() {
         label: "&" + `Start Screen`,
 
         click: () => {
-          showBook("");
+          openNewPrimaryBloomPub("");
         },
       },
     ],
@@ -118,7 +117,7 @@ export function showOpenFile() {
   };
   window.electronApi.showOpenDialog(options, (filepath: string) => {
     if (filepath) {
-      showBook(filepath);
+      openNewPrimaryBloomPub(filepath);
     }
   });
 }

@@ -13,13 +13,17 @@ contextBridge.exposeInMainWorld("electronApi", {
   },
   send: (channel: string, data) => {
     // whitelist channels
-    let validChannels = ["unpack-zip-file", "exitFullScreen", "toggleDevTools"];
+    let validChannels = [
+      "switch-primary-book",
+      "exitFullScreen",
+      "toggleDevTools",
+    ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }
   },
   receive: (channel: string, func) => {
-    let validChannels = ["zip-file-unpacked"];
+    let validChannels = ["bloomPub-ready", "uncaught-error"];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
       ipcRenderer.on(channel, (event, ...args) => func(...args));

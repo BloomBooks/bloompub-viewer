@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, protocol } from "electron";
 import * as temp from "temp";
+import * as fs from "fs";
 import * as Path from "path";
 import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
@@ -142,9 +143,9 @@ let currentPrimaryBookUnpackedFolder: string;
 
 // "primary" here is used because books can link to other books, but
 // we still have a notion of the book you opened directly from this component.
-ipcMain.on("switch-primary-book", async (event, zipFilePath) => {
-  const result = await unpackBloomPub(zipFilePath);
-  currentPrimaryBloomPubPath = zipFilePath;
+ipcMain.on("switch-primary-book", async (event, bloomPubPath) => {
+  const result = await unpackBloomPub(bloomPubPath);
+  currentPrimaryBloomPubPath = bloomPubPath;
   currentPrimaryBookUnpackedFolder = result.unpackedToFolderPath;
   event.reply("bloomPub-ready", result.zipPath, result.htmPath);
   // if there's an exception in the above, we'll just let it bubble up to

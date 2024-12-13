@@ -63,7 +63,7 @@ function loadCache(rootFolderPath: string): BookIdCache {
 function saveCache(rootFolderPath: string, cache: BookIdCache): void {
   const cachePath = path.join(
     rootFolderPath,
-    ".bloompubViewer-bookId-cache.json"
+    ".bloompub-viewer-bookId-cache.json"
   );
   try {
     fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2));

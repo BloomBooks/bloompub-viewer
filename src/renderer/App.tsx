@@ -7,27 +7,27 @@ import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
 import { compareVersions } from "compare-versions";
 
-export let openNewPrimaryBloomPub: (path: string) => void;
+export let setNewPrimaryBloomPub: (path: string) => void;
 
 // Make react-toastify styles work (without a css loader and without copying the css file into our code)
 injectStyle();
 
-export const App: React.FunctionComponent<{ initialBloomPubPath: string }> = (
+export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   props
 ) => {
-  const [bloomPubPath, setBloomPubPath] = useState(props.initialBloomPubPath);
+  const [bloomPubPath, setBloomPubPath] = useState(props.primaryBloomPubPath);
   const [primaryHtmlPath, setPrimaryHtmlPath] = useState("");
-  openNewPrimaryBloomPub = setBloomPubPath;
+  setNewPrimaryBloomPub = setBloomPubPath;
 
   useEffect(() => {
     if (bloomPubPath) {
-      window.electronApi.addRecentDocument(bloomPubPath);
-      window.electronApi.send("switch-primary-book", bloomPubPath);
+      window.bloomPubViewMainApi.addRecentDocument(bloomPubPath);
+      window.bloomPubViewMainApi.send("switch-primary-book", bloomPubPath);
     }
   }, [bloomPubPath]);
 
   useEffect(() => {
-    const unsubscribe = window.electronApi.receive(
+    const unsubscribe = window.bloomPubViewMainApi.receive(
       "uncaught-error",
       (errorMessage) => {
         toast.error(`${errorMessage}`, {
@@ -47,16 +47,38 @@ export const App: React.FunctionComponent<{ initialBloomPubPath: string }> = (
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.electronApi.receive(
+    const unsubscribe = window.bloomPubViewMainApi.receive(
       "bloomPub-ready",
-      (bloomPubPath: string, indexHtmlPath: string) => {
-        if (bloomPubPath === bloomPubPath) {
+      (receivedBloomPubPath: string, indexHtmlPath: string) => {
+        console.log(
+          `Received bloomPub-ready: ${receivedBloomPubPath}, html: ${indexHtmlPath}`
+        );
+        if (receivedBloomPubPath === bloomPubPath) {
           setPrimaryHtmlPath(indexHtmlPath);
         }
       }
     );
     return () => unsubscribe?.();
   }, [bloomPubPath]);
+
+  useEffect(() => {
+    const handleBackButton = (event: MessageEvent) => {
+      // try to part the event.data into an object
+      if (event.data) {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.messageType === "backButtonClicked") {
+            setNewPrimaryBloomPub("");
+          }
+        } catch (err) {
+          //some other message, not the kind bloom-player sends
+        }
+      }
+    };
+    window.addEventListener("message", handleBackButton);
+    return () => window.removeEventListener("message", handleBackButton);
+  }, []);
 
   checkForNewVersion();
 
@@ -80,7 +102,7 @@ function checkForNewVersion() {
       if (
         compareVersions(
           publishedVersion,
-          window.electronApi.getCurrentAppVersion()
+          window.bloomPubViewMainApi.getCurrentAppVersion()
         ) > 0
       ) {
         toast.success(
@@ -94,7 +116,7 @@ function checkForNewVersion() {
             draggable: true,
             progress: undefined,
             onClick: () => {
-              window.electronApi.openDownloadPage(
+              window.bloomPubViewMainApi.openDownloadPage(
                 "https://bloomlibrary.org/bloompub-viewer"
               );
             },

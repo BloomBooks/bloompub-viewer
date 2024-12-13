@@ -1,16 +1,11 @@
 import React from "react";
-
 const bloomPlayerProtocol = "bpub://bloom-player/";
 const bloomPlayerHtml = "bloomplayer.htm";
 export const Viewer: React.FunctionComponent<{
   unpackedPath: string;
 }> = (props) => {
   const rawUrl = getUrlFromFilePath(props.unpackedPath);
-  console.log(`path = ${props.unpackedPath} (encoded to ${rawUrl})`);
-
-  const iframeSource = `${bloomPlayerProtocol}${bloomPlayerHtml}?allowToggleAppBar=true&url=${rawUrl}&host=bloompubviewer`;
-  console.log(`iframe src set to ${iframeSource}`);
-
+  const iframeSource = `${bloomPlayerProtocol}${bloomPlayerHtml}?allowToggleAppBar=true&url=${rawUrl}&host=bloompubviewer&showBackButton=true`;
   return (
     <div className="App">
       <iframe

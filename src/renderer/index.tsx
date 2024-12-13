@@ -2,12 +2,15 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { toast } from "react-toastify";
-import { App, openNewPrimaryBloomPub } from "./App";
+import { App, setNewPrimaryBloomPub } from "./App";
+import { showOpenFile } from "./StartScreen";
 updateMainMenu();
-const zipFilePath = window.electronApi.sendSync("get-file-that-launched-me");
+const bloomPubFilePath = window.bloomPubViewMainApi.sendSync(
+  "get-file-that-launched-me"
+);
 
 const root = createRoot(document.getElementById("root")!);
-root.render(<App initialBloomPubPath={zipFilePath} />); // React 18+ syntax / rendering mode.
+root.render(<App primaryBloomPubPath={bloomPubFilePath} />); // React 18+ syntax / rendering mode.
 
 function updateMainMenu() {
   const macMenu = {
@@ -17,7 +20,7 @@ function updateMainMenu() {
         label: `Quit`,
         accelerator: "Command+Q",
         click() {
-          window.electronApi.quit();
+          window.bloomPubViewMainApi.quit();
         },
       },
     ],
@@ -37,7 +40,7 @@ function updateMainMenu() {
         label: "&" + `Start Screen`,
 
         click: () => {
-          openNewPrimaryBloomPub("");
+          setNewPrimaryBloomPub("");
         },
       },
     ],
@@ -51,7 +54,7 @@ function updateMainMenu() {
         accelerator: "F11",
         click: () => {
           const isNowFullScreen =
-            window.electronApi.sendSync("toggleFullScreen");
+            window.bloomPubViewMainApi.sendSync("toggleFullScreen");
 
           if (isNowFullScreen) {
             toast.info(`Press F11 or ESC to exit full screen`, {
@@ -72,7 +75,7 @@ function updateMainMenu() {
         visible: false,
         accelerator: "Esc",
         click() {
-          window.electronApi.send("exitFullScreen");
+          window.bloomPubViewMainApi.send("exitFullScreen");
         },
       },
       {
@@ -80,7 +83,7 @@ function updateMainMenu() {
         accelerator: "F12",
         visible: false,
         click() {
-          window.electronApi.send("toggleDevTools");
+          window.bloomPubViewMainApi.send("toggleDevTools");
         },
       },
     ],
@@ -98,26 +101,5 @@ function updateMainMenu() {
 
   template.push(fileMenu);
   template.push(viewMenu);
-  window.electronApi.setApplicationMenu(template);
-}
-export function showOpenFile() {
-  const options /*:Electron.OpenDialogOptions*/ = {
-    title: "Open BloomPUB File",
-    properties: ["openFile"],
-    filters: [
-      {
-        name: "BloomPUB Book",
-        extensions: ["bloomd", "bloompub"],
-      },
-      {
-        name: "Bloom Source Book",
-        extensions: ["bloom", "bloomSource"],
-      },
-    ],
-  };
-  window.electronApi.showOpenDialog(options, (filepath: string) => {
-    if (filepath) {
-      openNewPrimaryBloomPub(filepath);
-    }
-  });
+  window.bloomPubViewMainApi.setApplicationMenu(template);
 }

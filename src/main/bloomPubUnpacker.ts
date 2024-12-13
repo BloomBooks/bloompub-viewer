@@ -1,3 +1,5 @@
+import { app, ipcMain } from "electron";
+import Store from "electron-store";
 import * as fs from "fs";
 import * as temp from "temp";
 import * as Path from "path";
@@ -8,16 +10,17 @@ const unpackedBloomPubs = new Map<string, string>();
 
 let unpackCountThisRun = 0;
 export async function unpackBloomPub(
-  zipFilePath: string
+  bloomPubPath: string,
+  addToRecentBooks = true
 ): Promise<{ zipPath: string; unpackedToFolderPath: string; htmPath: string }> {
-  if (zipFilePath.indexOf("crash") > 0)
+  if (bloomPubPath.indexOf("crash") > 0)
     throw new Error("This is a test of the error handling system.");
 
   // Check if we've unpacked this before
-  const existingPath = unpackedBloomPubs.get(zipFilePath);
+  const existingPath = unpackedBloomPubs.get(bloomPubPath);
   if (existingPath && fs.existsSync(existingPath)) {
     console.log(`Book already unpacked at ${existingPath}`);
-    return prepareResponse(existingPath, zipFilePath);
+    return prepareResponse(existingPath, bloomPubPath);
   }
 
   const unpackedFolder = temp.mkdirSync("bloomPUB-viewer-");
@@ -29,15 +32,15 @@ export async function unpackBloomPub(
     "!!!!!!!!!Unpacking operation " +
       unpackCountThisRun +
       " for " +
-      zipFilePath +
+      bloomPubPath +
       " to " +
       unpackedFolder
   );
   return new Promise((resolve, reject) => {
-    fs.readFile(zipFilePath, (err, data) => {
+    fs.readFile(bloomPubPath, (err, data) => {
       if (err) {
         console.log("Error reading file: " + err);
-        reject({ zipPath: zipFilePath, htmPath: null });
+        reject({ zipPath: bloomPubPath, htmPath: null });
         return;
       }
 
@@ -70,15 +73,16 @@ export async function unpackBloomPub(
               });
             })
           ).then(function () {
-            unpackedBloomPubs.set(zipFilePath, unpackedFolder);
-            resolve(prepareResponse(unpackedFolder, zipFilePath));
+            unpackedBloomPubs.set(bloomPubPath, unpackedFolder);
+            if (addToRecentBooks) addRecentBook(bloomPubPath, unpackedFolder);
+            resolve(prepareResponse(unpackedFolder, bloomPubPath));
           });
         });
       });
     });
   });
 }
-function prepareResponse(unpackedFolder: string, zipFilePath: string) {
+function prepareResponse(unpackedFolder: string, bloomPubPath: string) {
   // start by expecting the main file to be index.htm
   let filename: string | undefined = "index.htm";
   if (!fs.existsSync(Path.join(unpackedFolder, filename))) {
@@ -92,8 +96,79 @@ function prepareResponse(unpackedFolder: string, zipFilePath: string) {
     }
   }
   return {
-    zipPath: zipFilePath,
+    zipPath: bloomPubPath,
     unpackedToFolderPath: unpackedFolder,
     htmPath: Path.join(unpackedFolder, filename).replace(/\\/g, "/"),
   };
 }
+
+function addRecentBook(bloomPubPath: string, unpackedFolder: string) {
+  // tell the OS that we opened this file for use in docks and such
+  app.addRecentDocument(bloomPubPath);
+
+  const stringEncodedThumbnail = getThumbnailEncodedAsString(unpackedFolder);
+
+  const normalizedPath = bloomPubPath.replace(/\\/g, "/");
+  const bookInfo = {
+    path: bloomPubPath,
+    title: Path.basename(normalizedPath, Path.extname(normalizedPath)).replace(
+      /\+/g,
+      " "
+    ),
+    thumbnail: stringEncodedThumbnail,
+  };
+
+  // add or update, making this the first one in the list
+  let recentBooks = store.get("recentBooks");
+  recentBooks = recentBooks.filter((b) => b.path !== bookInfo.path);
+  recentBooks.unshift(bookInfo);
+  recentBooks = recentBooks.slice(0, 6);
+  store.set("recentBooks", recentBooks);
+}
+
+const store = new Store<StoreSchema>({
+  name: "bloompub-viewer-prefs",
+  defaults: {
+    recentBooks: [],
+  },
+});
+
+function getThumbnailEncodedAsString(unpackedFolder: string): string {
+  // Try PNG first
+  const pngPath = Path.join(unpackedFolder, "thumbnail.png");
+  if (fs.existsSync(pngPath)) {
+    try {
+      console.log("reading thumbnail:", pngPath);
+      const thumbBuffer = fs.readFileSync(pngPath);
+      return `data:image/png;base64,${thumbBuffer.toString("base64")}`;
+    } catch (error) {
+      console.log("Error reading thumbnail:", error);
+    }
+  }
+
+  // Try JPG if PNG doesn't exist
+  const jpgPath = Path.join(unpackedFolder, "thumbnail.jpg");
+  if (fs.existsSync(jpgPath)) {
+    try {
+      console.log("reading thumbnail:", jpgPath);
+      const thumbBuffer = fs.readFileSync(jpgPath);
+      return `data:image/jpeg;base64,${thumbBuffer.toString("base64")}`;
+    } catch (error) {
+      console.log("Error reading thumbnail:", error);
+    }
+  }
+
+  return "";
+}
+interface StoreSchema {
+  recentBooks: Array<{
+    path: string;
+    title: string;
+    thumbnail?: string;
+  }>;
+}
+ipcMain.on("get-recent-books", (event) => {
+  event.returnValue = store
+    .get("recentBooks")
+    .filter((b) => fs.existsSync(b.path));
+});

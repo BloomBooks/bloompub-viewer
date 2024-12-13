@@ -82,7 +82,7 @@ async function getPathToBookUnpackIfNeeded(
   // Create a new unpack operation and store it in the Map
   const unpackOperation = (async () => {
     try {
-      const result = await unpackBloomPub(boomPUBPath);
+      const result = await unpackBloomPub(boomPUBPath, false);
       if (!result?.unpackedToFolderPath) {
         throw new Error("Unpacking failed");
       }

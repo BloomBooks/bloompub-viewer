@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import wordmark from "../../assets/wordmark.svg";
 import search from "../../assets/Search.svg";
 import open from "../../assets/Open.svg";
+import silLogo from "../../assets/SIL_Logo_80pxTall.png";
 import { setNewPrimaryBloomPub } from "./App";
 
 interface RecentBook {
@@ -23,16 +24,20 @@ export const StartScreen: React.FunctionComponent = () => {
     <div
       css={css`
         display: flex;
+        flex-direction: column;
+        min-height: 100vh;
         * {
           color: #d65649;
         }
       `}
     >
+      {/* this is all the controls, centered in the window */}
       <div
         css={css`
           margin-left: auto;
           margin-right: auto;
           margin-top: 60px;
+          flex: 1;
         `}
       >
         <img
@@ -196,6 +201,32 @@ export const StartScreen: React.FunctionComponent = () => {
             </div>
           </div>
         )}
+      </div>
+      <div
+        css={css`
+          display: flex;
+          align-items: center;
+          padding: 20px;
+          margin-top: auto;
+          // with these we're aiming to left-align with the controls above
+          margin-left: auto;
+          margin-right: auto;
+          width: 500px;
+
+          img {
+            height: 30px;
+          }
+
+          .copyright {
+            margin-left: 10px;
+            //margin-top: auto;
+            font-size: 14px;
+            color: #005cb9 !important;
+          }
+        `}
+      >
+        <img src={silLogo} alt="SIL Logo" />
+        <span className="copyright">© 2025 SIL Global</span>
       </div>
     </div>
   );

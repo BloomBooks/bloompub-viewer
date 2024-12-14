@@ -1,9 +1,10 @@
-import { app, BrowserWindow, ipcMain, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, protocol, screen } from "electron";
 import * as temp from "temp";
 import * as fs from "fs";
 import * as Path from "path";
 import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
+import windowStateKeeper from "electron-window-state";
 
 // Global exception handlers
 process.on("uncaughtException", (error) => {
@@ -55,13 +56,20 @@ const preloadPath =
     : Path.join(__dirname, "preload.js");
 
 function createWindow() {
-  /**
-   * Initial window options
-   */
+  // Load the previous state with fallback to defaults
+  const mainWindowState = windowStateKeeper({
+    file: "bloompub-viewer-window-state.json",
+    // These will only apply when there's no saved state
+    defaultWidth: 1300,
+    defaultHeight: 800,
+    maximize: true,
+  });
+
   mainWindow = new BrowserWindow({
-    height: 563,
-    useContentSize: true,
-    width: 1000,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     fullscreenable: true,
     webPreferences: {
       nodeIntegration: false,
@@ -74,14 +82,13 @@ function createWindow() {
     title: "BloomPUB Viewer " + require("../../package.json").version,
   });
 
+  mainWindowState.manage(mainWindow);
+
   require("@electron/remote/main").enable(mainWindow.webContents);
   require("@electron/remote/main").initialize();
 
   mainWindow.loadURL(winURL);
-
-  /* This is still in progress, held up while we decide if we can put the necessary certificate in github
-    secrets. Without that, we can't sign, and without signing, we can' auto update anyways.
-    setupAutoUpdate();*/
+  mainWindow.setBounds(mainWindowState); // see https://github.com/mawie81/electron-window-state/issues/80
 
   mainWindow.on("closed", () => {
     mainWindow = null;

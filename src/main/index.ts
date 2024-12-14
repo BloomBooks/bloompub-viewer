@@ -1,10 +1,13 @@
 import { app, BrowserWindow, ipcMain, protocol, screen } from "electron";
 import * as temp from "temp";
-import * as fs from "fs";
 import * as Path from "path";
+import * as fs from "fs";
 import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
+
+let currentPrimaryBloomPubPath: string | undefined;
+let currentPrimaryBookUnpackedFolder: string | undefined;
 
 // Global exception handlers
 process.on("uncaughtException", (error) => {
@@ -101,8 +104,8 @@ app.whenReady().then(() => {
   protocol.handle("bpub", (request: GlobalRequest) =>
     bpubProtocolHandler(
       request,
-      currentPrimaryBloomPubPath,
-      currentPrimaryBookUnpackedFolder
+      currentPrimaryBloomPubPath!,
+      currentPrimaryBookUnpackedFolder!
     )
   );
 });
@@ -145,16 +148,25 @@ ipcMain.on("get-file-that-launched-me", (event, arg) => {
   }
 });
 
-let currentPrimaryBloomPubPath: string;
-let currentPrimaryBookUnpackedFolder: string;
-
 // "primary" here is used because books can link to other books, but
 // we still have a notion of the book you opened directly from this component.
 ipcMain.on("switch-primary-book", async (event, bloomPubPath) => {
   const result = await unpackBloomPub(bloomPubPath);
-  currentPrimaryBloomPubPath = bloomPubPath;
-  currentPrimaryBookUnpackedFolder = result.unpackedToFolderPath;
-  event.reply("bloomPub-ready", result.zipPath, result.htmPath);
+  if (result.unpackedToFolderPath === undefined) {
+    console.error("Failed to unpack book: " + bloomPubPath);
+    currentPrimaryBloomPubPath = undefined;
+    currentPrimaryBookUnpackedFolder = undefined;
+    let reason = "Unknown reason";
+    // if the bloompub doesn't exist, set the reason
+    if (!fs.existsSync(bloomPubPath)) {
+      reason = "Could not find the book";
+    }
+    event.reply("switch-primary-book-failed", bloomPubPath, reason);
+  } else {
+    currentPrimaryBloomPubPath = bloomPubPath;
+    currentPrimaryBookUnpackedFolder = result.unpackedToFolderPath;
+    event.reply("book-ready-to-display", result.zipPath, result.htmPath);
+  }
   // if there's an exception in the above, we'll just let it bubble up to
   // the global exception handler
 });

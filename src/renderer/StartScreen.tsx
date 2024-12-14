@@ -1,25 +1,15 @@
 import { css } from "@emotion/react";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import wordmark from "../../assets/wordmark.svg";
 import search from "../../assets/Search.svg";
 import open from "../../assets/Open.svg";
 import silLogo from "../../assets/SIL_Logo_80pxTall.png";
 import { setNewPrimaryBloomPub } from "./App";
 
-interface RecentBook {
-  path: string;
-  thumbnail?: string;
-  title: string;
-}
-
-export const StartScreen: React.FunctionComponent = () => {
-  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
-  useEffect(() => {
-    setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
-  }, []);
-
-  //console.log("StartScreen rendering with books:", recentBooks);
+export const StartScreen: React.FunctionComponent<{
+  recentBooks: RecentBook[];
+}> = ({ recentBooks }) => {
   return (
     <div
       css={css`

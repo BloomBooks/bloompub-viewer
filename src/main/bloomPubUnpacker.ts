@@ -8,14 +8,39 @@ import * as jszip from "jszip";
 // Track which BloomPUBs have been unpacked and where
 const unpackedBloomPubs = new Map<string, string>();
 
+const store = new Store<StoreSchema>({
+  name: "bloompub-viewer-prefs",
+  defaults: {
+    recentBooks: [],
+  },
+});
+
 let unpackCountThisRun = 0;
+
 export async function unpackBloomPub(
   bloomPubPath: string,
   addToRecentBooks = true
-): Promise<{ zipPath: string; unpackedToFolderPath: string; htmPath: string }> {
+): Promise<{
+  zipPath: string;
+  unpackedToFolderPath: string | undefined;
+  htmPath: string | undefined;
+}> {
   if (bloomPubPath.indexOf("crash") > 0)
     throw new Error("This is a test of the error handling system.");
 
+  // if that path doesn't exist, remove from recents (if it's there) and return undefined
+  if (!fs.existsSync(bloomPubPath)) {
+    const recentBooks = store.get("recentBooks");
+    const updatedRecentBooks = recentBooks.filter(
+      (b) => b.path !== bloomPubPath
+    );
+    store.set("recentBooks", updatedRecentBooks);
+    return Promise.resolve({
+      zipPath: bloomPubPath,
+      unpackedToFolderPath: undefined,
+      htmPath: undefined,
+    });
+  }
   // Check if we've unpacked this before
   const existingPath = unpackedBloomPubs.get(bloomPubPath);
   if (existingPath && fs.existsSync(existingPath)) {
@@ -125,13 +150,6 @@ function addRecentBook(bloomPubPath: string, unpackedFolder: string) {
   recentBooks = recentBooks.slice(0, 6);
   store.set("recentBooks", recentBooks);
 }
-
-const store = new Store<StoreSchema>({
-  name: "bloompub-viewer-prefs",
-  defaults: {
-    recentBooks: [],
-  },
-});
 
 function getThumbnailEncodedAsString(unpackedFolder: string): string {
   // Try PNG first

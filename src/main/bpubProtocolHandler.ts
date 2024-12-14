@@ -1,8 +1,7 @@
 import { app, net } from "electron";
 import * as fs from "fs";
-import * as temp from "temp";
 import * as Path from "path";
-import { getPathToResourceFromAnotherBook } from "./otherBookLoader";
+import { getPathToResourceFromAnotherBook } from "./linkedBookLoader";
 
 // Note I'm not sure we actually need this "bpub://" protocol, but it's how
 // we originally set things up. I suspect we could just be using "http://localhost:xxxx"

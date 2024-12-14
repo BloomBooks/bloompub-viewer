@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
     // whitelist channels
     let validChannels = [
       "switch-primary-book",
+      "switch-primary-book-failed",
       "exitFullScreen",
       "toggleDevTools",
     ];
@@ -23,7 +24,11 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
     }
   },
   receive: (channel: string, func) => {
-    let validChannels = ["bloomPub-ready", "uncaught-error"];
+    let validChannels = [
+      "book-ready-to-display",
+      "uncaught-error",
+      "switch-primary-book-failed",
+    ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
       ipcRenderer.on(channel, (event, ...args) => func(...args));

@@ -17,14 +17,34 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
 ) => {
   const [bloomPubPath, setBloomPubPath] = useState(props.primaryBloomPubPath);
   const [primaryHtmlPath, setPrimaryHtmlPath] = useState("");
-  setNewPrimaryBloomPub = setBloomPubPath;
+  const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
 
   useEffect(() => {
-    if (bloomPubPath) {
-      window.bloomPubViewMainApi.addRecentDocument(bloomPubPath);
-      window.bloomPubViewMainApi.send("switch-primary-book", bloomPubPath);
-    }
-  }, [bloomPubPath]);
+    setNewPrimaryBloomPub = (path: string) => {
+      setPrimaryHtmlPath("");
+      setBloomPubPath("");
+      if (path) {
+        // if we're just going back to the start screen, don't bother the main process
+        // request the main process to load this book. It will call us back with "book-ready-to-display"
+        window.bloomPubViewMainApi.send("switch-primary-book", path);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = window.bloomPubViewMainApi.receive(
+      "book-ready-to-display",
+      (receivedBloomPubPath: string, indexHtmlPath: string) => {
+        console.log(
+          `Received book-ready-to-display: ${receivedBloomPubPath}, html: ${indexHtmlPath}`
+        );
+        setBloomPubPath(receivedBloomPubPath);
+        setPrimaryHtmlPath(indexHtmlPath);
+        setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
+      }
+    );
+    return () => unsubscribe?.();
+  }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
     const unsubscribe = window.bloomPubViewMainApi.receive(
@@ -48,19 +68,17 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
 
   useEffect(() => {
     const unsubscribe = window.bloomPubViewMainApi.receive(
-      "bloomPub-ready",
-      (receivedBloomPubPath: string, indexHtmlPath: string) => {
-        console.log(
-          `Received bloomPub-ready: ${receivedBloomPubPath}, html: ${indexHtmlPath}`
-        );
-        if (receivedBloomPubPath === bloomPubPath) {
-          setPrimaryHtmlPath(indexHtmlPath);
-        }
+      "switch-primary-book-failed",
+      (receivedBloomPubPath: string, reason: string) => {
+        toast.error(`Something went wrong opening that book: ${reason}`);
+
+        // recalculate recent books, in case we clicked on a recent book button
+        // for a book that isn't there anymore
+        setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
     return () => unsubscribe?.();
-  }, [bloomPubPath]);
-
+  }, []);
   useEffect(() => {
     const handleBackButton = (event: MessageEvent) => {
       // try to part the event.data into an object
@@ -80,6 +98,10 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
     return () => window.removeEventListener("message", handleBackButton);
   }, []);
 
+  useEffect(() => {
+    setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
+  }, []);
+
   checkForNewVersion();
 
   return (
@@ -87,7 +109,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
       <ToastContainer></ToastContainer>
       {(bloomPubPath && primaryHtmlPath && (
         <Viewer unpackedPath={primaryHtmlPath} />
-      )) || <StartScreen></StartScreen>}
+      )) || <StartScreen recentBooks={recentBooks}></StartScreen>}
     </>
   );
 };

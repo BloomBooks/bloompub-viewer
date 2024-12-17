@@ -81,7 +81,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   }, []);
   useEffect(() => {
     const handleBackButton = (event: MessageEvent) => {
-      // try to part the event.data into an object
+      // try to parse the event.data into an object
       if (event.data) {
         try {
           const data = JSON.parse(event.data);

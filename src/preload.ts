@@ -3,7 +3,7 @@ import * as remote from "@electron/remote";
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer, remote, and shell without exposing the entire objects
-contextBridge.exposeInMainWorld("electronApi", {
+contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   sendSync: (channel: string, data) => {
     // whitelist channels
     let validChannels = ["get-file-that-launched-me", "toggleFullScreen"];
@@ -13,13 +13,22 @@ contextBridge.exposeInMainWorld("electronApi", {
   },
   send: (channel: string, data) => {
     // whitelist channels
-    let validChannels = ["unpack-zip-file", "exitFullScreen", "toggleDevTools"];
+    let validChannels = [
+      "switch-primary-book",
+      "switch-primary-book-failed",
+      "exitFullScreen",
+      "toggleDevTools",
+    ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }
   },
   receive: (channel: string, func) => {
-    let validChannels = ["zip-file-unpacked"];
+    let validChannels = [
+      "book-ready-to-display",
+      "uncaught-error",
+      "switch-primary-book-failed",
+    ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
       ipcRenderer.on(channel, (event, ...args) => func(...args));
@@ -34,8 +43,8 @@ contextBridge.exposeInMainWorld("electronApi", {
     }
   },
 
-  addRecentDocument: (zipPath: string) => {
-    remote.app.addRecentDocument(zipPath);
+  addRecentDocument: (bloomPubPath: string) => {
+    remote.app.addRecentDocument(bloomPubPath);
   },
 
   quit: () => {
@@ -64,4 +73,12 @@ contextBridge.exposeInMainWorld("electronApi", {
   getCurrentAppVersion: () => {
     return require("../package.json").version;
   },
+
+  getRecentBooks: () => {
+    return ipcRenderer.sendSync("get-recent-books");
+  },
+
+  // addRecentBook: (book) => {
+  //   ipcRenderer.send("add-recent-book", book);
+  // },
 });

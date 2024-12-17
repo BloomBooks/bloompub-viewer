@@ -1,8 +1,25 @@
-import { app, BrowserWindow, ipcMain, net, protocol } from "electron";
-import * as fs from "fs";
+import { app, BrowserWindow, ipcMain, protocol, screen } from "electron";
 import * as temp from "temp";
 import * as Path from "path";
-import * as jszip from "jszip";
+import * as fs from "fs";
+import { bpubProtocolHandler } from "./bpubProtocolHandler";
+import { unpackBloomPub } from "./bloomPubUnpacker";
+import windowStateKeeper from "electron-window-state";
+
+let currentPrimaryBloomPubPath: string | undefined;
+let currentPrimaryBookUnpackedFolder: string | undefined;
+
+// Global exception handlers
+process.on("uncaughtException", (error) => {
+  if (mainWindow) {
+    mainWindow.webContents.send("uncaught-error", error.message);
+  }
+});
+process.on("unhandledRejection", (reason, promise) => {
+  if (mainWindow) {
+    mainWindow.webContents.send("uncaught-error", reason);
+  }
+});
 
 /**
  * Set `__static` path to static files in production
@@ -42,13 +59,20 @@ const preloadPath =
     : Path.join(__dirname, "preload.js");
 
 function createWindow() {
-  /**
-   * Initial window options
-   */
+  // Load the previous state with fallback to defaults
+  const mainWindowState = windowStateKeeper({
+    file: "bloompub-viewer-window-state.json",
+    // These will only apply when there's no saved state
+    defaultWidth: 1300,
+    defaultHeight: 800,
+    maximize: true,
+  });
+
   mainWindow = new BrowserWindow({
-    height: 563,
-    useContentSize: true,
-    width: 1000,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     fullscreenable: true,
     webPreferences: {
       nodeIntegration: false,
@@ -61,14 +85,13 @@ function createWindow() {
     title: "BloomPUB Viewer " + require("../../package.json").version,
   });
 
+  mainWindowState.manage(mainWindow);
+
   require("@electron/remote/main").enable(mainWindow.webContents);
   require("@electron/remote/main").initialize();
 
   mainWindow.loadURL(winURL);
-
-  /* This is still in progress, held up while we decide if we can put the necessary certificate in github
-    secrets. Without that, we can't sign, and without signing, we can' auto update anyways.
-    setupAutoUpdate();*/
+  mainWindow.setBounds(mainWindowState); // see https://github.com/mawie81/electron-window-state/issues/80
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -77,87 +100,14 @@ function createWindow() {
 
 app.on("ready", createWindow);
 
-let currentFolder: string;
-
-function convertUrlToPath(requestUrl: string): string {
-  const urlPrefix = "bpub://";
-  const bloomPlayerOrigin = urlPrefix + "bloom-player/";
-  const baseUrl = decodeURIComponent(requestUrl);
-  const urlPath = baseUrl.startsWith(bloomPlayerOrigin)
-    ? baseUrl.substring(bloomPlayerOrigin.length)
-    : baseUrl.substring(urlPrefix.length); // not from same origin? shouldn't happen.
-  const playerFolder =
-    process.env.NODE_ENV === "development"
-      ? Path.normalize(
-          Path.join(app.getAppPath(), "../../node_modules/bloom-player/dist")
-        )
-      : __dirname;
-  let path: string;
-  if (urlPath.startsWith("host/fonts/"))
-    path = getPathToFont(urlPath.substring("host/fonts/".length));
-  else if (urlPath.startsWith("bloomplayer.htm?allowToggleAppBar")) {
-    path = Path.join(playerFolder, "bloomplayer.htm");
-  } else if (!urlPath.includes("/")) {
-    path = Path.join(playerFolder, urlPath);
-  } else if (urlPath.includes("?")) {
-    path = Path.normalize(urlPath.substr(0, urlPath.indexOf("?")));
-  } else {
-    path = Path.normalize(urlPath);
-  }
-  // It may be a bug in electron, but some books can send out image paths as
-  // bare filenames.  (This may happen only on pages with both a picture and
-  // a video.  That's the context where I saw this behavior.)
-  if (!Path.isAbsolute(path)) {
-    path = Path.normalize(Path.join(currentFolder, path));
-  }
-
-  // console.log(`convertUrlToPath: path=${path}`);
-  return path;
-}
-
-// Starting in bloom-player 2.1, we have font-face rules which tell the host to serve up
-// the appropriate Andika or Andika New Basic font file. An example is:
-//             @font-face {
-//                font-family: "Andika New Basic";
-//                font-weight: bold;
-//                font-style: normal;
-//                src:
-//                    local("Andika New Basic Bold"),
-//                    local("Andika Bold"),
-//    ===>            url("./host/fonts/Andika New Basic Bold"),
-//                    url("https://bloomlibrary.org/fonts/Andika%20New%20Basic/AndikaNewBasic-B.woff")
-//                ;
-//            }
-// So if we have a request for /host/fonts/, here is where we intercept and handle it.
-function getPathToFont(fontRequested: string) {
-  let fontFileName = fontRequested;
-  switch (fontRequested) {
-    case "Andika New Basic":
-    case "Andika":
-      fontFileName = "Andika-Regular.ttf";
-      break;
-    case "Andika New Basic Bold":
-    case "Andika Bold":
-      fontFileName = "Andika-Bold.ttf";
-      break;
-    case "Andika New Basic Italic":
-    case "Andika Italic":
-      fontFileName = "Andika-Italic.ttf";
-      break;
-    case "Andika New Basic Bold Italic":
-    case "Andika Bold Italic":
-      fontFileName = "Andika-BoldItalic.ttf";
-      break;
-  }
-  return Path.normalize(
-    Path.join(app.getAppPath(), "../../static/fonts/", fontFileName)
-  );
-}
-
 app.whenReady().then(() => {
-  protocol.handle("bpub", (request: GlobalRequest) => {
-    return net.fetch("file:///" + convertUrlToPath(request.url));
-  });
+  protocol.handle("bpub", (request: GlobalRequest) =>
+    bpubProtocolHandler(
+      request,
+      currentPrimaryBloomPubPath!,
+      currentPrimaryBookUnpackedFolder!
+    )
+  );
 });
 
 app.on("window-all-closed", () => {
@@ -198,80 +148,25 @@ ipcMain.on("get-file-that-launched-me", (event, arg) => {
   }
 });
 
-ipcMain.on("unpack-zip-file", (event, zipFilePath) => {
-  const slashIndex = zipFilePath.replace(/\\/g, "/").lastIndexOf("/");
-  const unpackedFolder = temp.mkdirSync("bloomPUB-viewer-");
-  currentFolder = unpackedFolder; // remember for bpub protocol if needed.
-
-  // use jszip to unzip the whole zipFilePath folder into unpackedFolder
-  fs.readFile(zipFilePath, (err, data) => {
-    if (err) {
-      console.log("Error reading file: " + err);
-      event.reply("zip-file-unpacked", zipFilePath, null);
-      return;
+// "primary" here is used because books can link to other books, but
+// we still have a notion of the book you opened directly from this component.
+ipcMain.on("switch-primary-book", async (event, bloomPubPath) => {
+  const result = await unpackBloomPub(bloomPubPath);
+  if (result.unpackedToFolderPath === undefined) {
+    console.error("Failed to unpack book: " + bloomPubPath);
+    currentPrimaryBloomPubPath = undefined;
+    currentPrimaryBookUnpackedFolder = undefined;
+    let reason = "Unknown reason";
+    // if the bloompub doesn't exist, set the reason
+    if (!fs.existsSync(bloomPubPath)) {
+      reason = "Could not find the book";
     }
-
-    // Keep a list for optimization, so we don't have to keep calling fs.mkdirSync.
-    const directories: Set<string> = new Set<string>();
-    // Seed it with the root directory, since we know that exists.
-    directories.add(unpackedFolder);
-
-    jszip.loadAsync(data).then(function (zip) {
-      Promise.all(
-        Object.keys(zip.files).map(function (filename) {
-          const file = zip.files[filename];
-          return file.async("nodebuffer").then(function (content) {
-            return { filename, content };
-          });
-        })
-      ).then(function (files) {
-        Promise.all(
-          files.map(function (file) {
-            const dest = Path.join(unpackedFolder, file.filename);
-
-            // Ensure the directory exists (create it if not)
-            const dir = Path.dirname(dest);
-            if (!directories.has(dir)) {
-              fs.mkdirSync(dir, { recursive: true });
-              directories.add(dir);
-            }
-
-            return new Promise<void>(function (resolve, reject) {
-              fs.writeFile(dest, file.content, function (err) {
-                if (err) reject(err);
-                else resolve();
-              });
-            });
-          })
-        ).then(function () {
-          let filename = "index.htm";
-          if (!fs.existsSync(Path.join(unpackedFolder, filename))) {
-            // it must be the old method, where we named the htm the same as the bloomd (which was obviously fragile):
-            const bookTitle = zipFilePath.substring(
-              slashIndex + 1,
-              zipFilePath.length
-            );
-            filename = bookTitle
-              .replace(/\.bloomd$/gi, ".htm")
-              .replace(/\.bloompub$/gi, ".htm")
-              .replace(/\.bloomsource$/gi, ".htm")
-              .replace(/\.bloom$/gi, ".htm");
-            if (!fs.existsSync(Path.join(unpackedFolder, filename))) {
-              // maybe it's the old format AND the user changed the name
-              filename =
-                fs
-                  .readdirSync(unpackedFolder)
-                  .find((f) => Path.extname(f) === ".htm") ||
-                "no htm file found";
-            }
-          }
-          event.reply(
-            "zip-file-unpacked",
-            zipFilePath,
-            Path.join(unpackedFolder, filename).replace(/\\/g, "/")
-          );
-        });
-      });
-    });
-  });
+    event.reply("switch-primary-book-failed", bloomPubPath, reason);
+  } else {
+    currentPrimaryBloomPubPath = bloomPubPath;
+    currentPrimaryBookUnpackedFolder = result.unpackedToFolderPath;
+    event.reply("book-ready-to-display", result.bloomPubPath, result.htmPath);
+  }
+  // if there's an exception in the above, we'll just let it bubble up to
+  // the global exception handler
 });

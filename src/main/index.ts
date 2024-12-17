@@ -165,7 +165,7 @@ ipcMain.on("switch-primary-book", async (event, bloomPubPath) => {
   } else {
     currentPrimaryBloomPubPath = bloomPubPath;
     currentPrimaryBookUnpackedFolder = result.unpackedToFolderPath;
-    event.reply("book-ready-to-display", result.zipPath, result.htmPath);
+    event.reply("book-ready-to-display", result.bloomPubPath, result.htmPath);
   }
   // if there's an exception in the above, we'll just let it bubble up to
   // the global exception handler

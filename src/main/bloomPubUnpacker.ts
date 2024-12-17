@@ -21,7 +21,7 @@ export async function unpackBloomPub(
   bloomPubPath: string,
   addToRecentBooks = true
 ): Promise<{
-  zipPath: string;
+  bloomPubPath: string;
   unpackedToFolderPath: string | undefined;
   htmPath: string | undefined;
 }> {
@@ -36,7 +36,7 @@ export async function unpackBloomPub(
     );
     store.set("recentBooks", updatedRecentBooks);
     return Promise.resolve({
-      zipPath: bloomPubPath,
+      bloomPubPath,
       unpackedToFolderPath: undefined,
       htmPath: undefined,
     });
@@ -65,7 +65,7 @@ export async function unpackBloomPub(
     fs.readFile(bloomPubPath, (err, data) => {
       if (err) {
         console.log("Error reading file: " + err);
-        reject({ zipPath: bloomPubPath, htmPath: null });
+        reject({ bloomPubPath, htmPath: null });
         return;
       }
 
@@ -121,7 +121,7 @@ function prepareResponse(unpackedFolder: string, bloomPubPath: string) {
     }
   }
   return {
-    zipPath: bloomPubPath,
+    bloomPubPath,
     unpackedToFolderPath: unpackedFolder,
     htmPath: Path.join(unpackedFolder, filename).replace(/\\/g, "/"),
   };

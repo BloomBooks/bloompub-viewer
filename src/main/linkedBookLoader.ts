@@ -1,8 +1,8 @@
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import { getBloomPUBPathFromId } from "./bookFinder";
 
-// When a book links to another book, it uses the /book/ prefix (see Readme for more info).
-// This handles finding the bloompub, unpacking it if necessary, and
+// When a book links to another book, it uses the /book/ prefix (see bloom-player Readme for more info).
+// This handles finding the bloompub, unpacking it if necessary,
 // and returning the path to the requested resource.
 export async function getPathToResourceFromAnotherBook(
   request: GlobalRequest,

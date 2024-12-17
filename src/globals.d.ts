@@ -75,7 +75,7 @@ interface Window {
     receive: (channel: string, func) => any;
     openLibrary: () => void;
     openDownloadPage: (downloadLink: string) => void;
-    addRecentDocument: (zipPath: string) => void;
+    addRecentDocument: (bloomPubPath: string) => void;
     quit: () => void;
     setApplicationMenu: (template: Array<any>) => void;
     showOpenDialog: (options: any, func) => void;

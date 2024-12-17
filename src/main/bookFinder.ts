@@ -55,7 +55,8 @@ function loadCache(rootFolderPath: string): BookIdCache {
   try {
     const cacheContent = fs.readFileSync(cachePath, "utf8");
     return JSON.parse(cacheContent);
-  } catch {
+  } catch (error) {
+    console.error("Error reading cache file:", error);
     return {};
   }
 }
@@ -67,7 +68,8 @@ function saveCache(rootFolderPath: string, cache: BookIdCache): void {
   );
   try {
     fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2));
-  } catch {
+  } catch (error) {
+    console.error("Error saving cache file:", error);
     // If we can't save the cache, just continue with in-memory cache
   }
 }
@@ -100,7 +102,11 @@ async function updateBookCache(rootFolderPath: string): Promise<void> {
 
   const files = fs
     .readdirSync(rootFolderPath)
-    .filter((f) => f.toLowerCase().endsWith(".bloompub"));
+    .filter(
+      (f) =>
+        f.toLowerCase().endsWith(".bloompub") ||
+        f.toLowerCase().endsWith(".bloomd")
+    );
 
   // Remove cached entries for files that no longer exist
   Object.keys(cache).forEach((filePath) => {

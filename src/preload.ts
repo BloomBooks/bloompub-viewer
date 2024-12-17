@@ -43,8 +43,8 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
     }
   },
 
-  addRecentDocument: (zipPath: string) => {
-    remote.app.addRecentDocument(zipPath);
+  addRecentDocument: (bloomPubPath: string) => {
+    remote.app.addRecentDocument(bloomPubPath);
   },
 
   quit: () => {

@@ -1,16 +1,18 @@
 {
   "name": "bloompub-viewer",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Bloom Devs",
   "description": "Viewer for Bloom Digital books",
   "license": "MIT",
   "main": "./dist/electron/main.js",
   "scripts": {
-    "build": "node .electron-react/build.js && electron-builder",
-    "build:clean": "cross-env BUILD_TARGET=clean node .electron-react/build.js",
-    "release": "yarn build -p always",
+    "lint": "eslint \"./**/!(*.d).ts{,x}\"",
     "dev": "node .electron-react/dev-runner.js",
-    "lint": "eslint \"./**/!(*.d).ts{,x}\""
+    "build": "cross-env BUILD_TARGET=clean && node .electron-react/build.js",
+    "make-exe": "yarn build && electron-builder --dir",
+    "make-installer": "yarn build && electron-builder ",
+    "// this might not be used by the github action, commenting out to test that": "",
+    "//release": "yarn make-installer -p always"
   },
   "build": {
     "productName": "BloomPUB Viewer",

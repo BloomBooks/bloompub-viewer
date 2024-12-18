@@ -198,25 +198,49 @@ export const StartScreen: React.FunctionComponent<{
           align-items: center;
           padding: 20px;
           margin-top: auto;
-          // with these we're aiming to left-align with the controls above
           margin-left: auto;
           margin-right: auto;
           width: 500px;
-
-          img {
-            height: 30px;
-          }
-
-          .copyright {
-            margin-left: 10px;
-            //margin-top: auto;
-            font-size: 14px;
-            color: #005cb9 !important;
-          }
         `}
       >
-        <img src={silLogo} alt="SIL Logo" />
-        <span className="copyright">© 2025 SIL Global</span>
+        <button
+          onClick={() => window.bloomPubViewMainApi.openSIL()}
+          title="Visit SIL.org"
+          css={css`
+            display: flex;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+              transform: scale(1.02);
+            }
+
+            &:active {
+              transform: scale(0.98);
+            }
+          `}
+        >
+          <img
+            src={silLogo}
+            alt="SIL Logo"
+            css={css`
+              height: 30px;
+            `}
+          />
+          <span
+            css={css`
+              margin-left: 10px;
+              font-size: 14px;
+              color: #005cb9 !important;
+            `}
+          >
+            © SIL Global
+          </span>
+        </button>
       </div>
     </div>
   );

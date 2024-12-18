@@ -35,6 +35,9 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
       ipcRenderer.on(channel, (event, ...args) => func(...args));
     }
   },
+  openSIL: () => {
+    remote.shell.openExternal("https://sil.org");
+  },
   openLibrary: () => {
     remote.shell.openExternal("https://bloomlibrary.org");
   },

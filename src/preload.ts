@@ -28,11 +28,15 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
       "book-ready-to-display",
       "uncaught-error",
       "switch-primary-book-failed",
+      "open-file",
     ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
       ipcRenderer.on(channel, (event, ...args) => func(...args));
     }
+  },
+  openSIL: () => {
+    remote.shell.openExternal("https://sil.org");
   },
   openLibrary: () => {
     remote.shell.openExternal("https://bloomlibrary.org");

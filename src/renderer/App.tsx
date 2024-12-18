@@ -20,6 +20,15 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
 
   useEffect(() => {
+    if (props.primaryBloomPubPath) {
+      window.bloomPubViewMainApi.send(
+        "switch-primary-book",
+        props.primaryBloomPubPath
+      );
+    }
+  }, [props.primaryBloomPubPath]);
+
+  useEffect(() => {
     setNewPrimaryBloomPub = (path: string) => {
       setPrimaryHtmlPath("");
       setBloomPubPath("");
@@ -100,6 +109,49 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
 
   useEffect(() => {
     setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
+  }, []);
+
+  // Add drag and drop support
+  useEffect(() => {
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.body.classList.add("drag-over");
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.body.classList.remove("drag-over");
+
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (
+          file.name.toLowerCase().endsWith(".bloompub") ||
+          file.name.toLowerCase().endsWith(".bloomd")
+        ) {
+          setNewPrimaryBloomPub(file.path);
+        }
+      }
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.body.classList.remove("drag-over");
+    };
+
+    document.addEventListener("dragover", handleDragOver);
+    document.addEventListener("drop", handleDrop);
+    document.addEventListener("dragleave", handleDragLeave);
+
+    return () => {
+      document.removeEventListener("dragover", handleDragOver);
+      document.removeEventListener("drop", handleDrop);
+      document.removeEventListener("dragleave", handleDragLeave);
+      document.body.classList.remove("drag-over");
+    };
   }, []);
 
   checkForNewVersion();

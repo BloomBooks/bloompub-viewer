@@ -75,6 +75,7 @@ interface Window {
     receive: (channel: string, func) => any;
     openLibrary: () => void;
     openDownloadPage: (downloadLink: string) => void;
+    openSIL: () => void;
     addRecentDocument: (bloomPubPath: string) => void;
     quit: () => void;
     setApplicationMenu: (template: Array<any>) => void;

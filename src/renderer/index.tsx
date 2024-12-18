@@ -12,6 +12,11 @@ const bloomPubFilePath = window.bloomPubViewMainApi.sendSync(
 const root = createRoot(document.getElementById("root")!);
 root.render(<App primaryBloomPubPath={bloomPubFilePath} />); // React 18+ syntax / rendering mode.
 
+// Add handler for files opened while app is running
+window.bloomPubViewMainApi.receive("open-file", (filePath: string) => {
+  setNewPrimaryBloomPub(filePath);
+});
+
 function updateMainMenu() {
   const macMenu = {
     label: `BloomPUB Viewer`,

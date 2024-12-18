@@ -6,8 +6,18 @@ import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 
+//Create log file in temp directory
+const logPath = temp.path() + "-bloompubviewer.log";
+fs.appendFileSync(
+  logPath,
+  `\n[${new Date().toISOString()}] App Start
+Packaged: ${app.isPackaged}
+Command line arguments: ${JSON.stringify(process.argv)}\n`
+);
+
 let currentPrimaryBloomPubPath: string | undefined;
 let currentPrimaryBookUnpackedFolder: string | undefined;
+let launchFile: string | undefined;
 
 // Global exception handlers
 process.on("uncaughtException", (error) => {
@@ -57,6 +67,11 @@ const preloadPath =
   process.env.NODE_ENV === "development"
     ? Path.join(app.getAppPath(), "preload.js")
     : Path.join(__dirname, "preload.js");
+
+const validExtensions = [".bloomd", ".bloompub"];
+function hasValidExtension(filePath: string): boolean {
+  return validExtensions.some((ext) => filePath.toLowerCase().endsWith(ext));
+}
 
 function createWindow() {
   // Load the previous state with fallback to defaults
@@ -137,15 +152,30 @@ ipcMain.on("exitFullScreen", () => {
   mainWindow!.setFullScreen(false);
 });
 
-ipcMain.on("get-file-that-launched-me", (event, arg) => {
-  // using app.isPackaged because the 2nd argument is a javascript path in dev mode
-  if (app.isPackaged && process.argv.length >= 2) {
-    console.log(JSON.stringify(process.argv));
-    var openFilePath = process.argv[1];
-    event.returnValue = openFilePath;
-  } else {
-    event.returnValue = ""; //"D:\\temp\\The Moon and the Cap.bloomd";
+// Handle files opened from recent documents on macOS.
+// I haven't learned how to do this on Windows yet.
+app.on("open-file", (event, filePath) => {
+  event.preventDefault();
+  if (hasValidExtension(filePath)) {
+    if (mainWindow) {
+      // TODO: not clear how the timing will work out, haven't tried it on a mac.
+      // It could be that we get this message too soon, before the renderer is ready to receive it.
+      mainWindow.webContents.send("open-file", filePath);
+    } else {
+      launchFile = filePath;
+    }
   }
+});
+
+ipcMain.on("get-file-that-launched-me", (event, arg) => {
+  // from a mac, we may have been given an event with the file to open
+  if (launchFile) {
+    event.returnValue = launchFile;
+    return;
+  }
+  // if we're running from `yarn dev`, the path will be the 3rd argument (normally empty, of course)
+  launchFile = process.argv[app.isPackaged ? 1 : 2];
+  event.returnValue = launchFile;
 });
 
 // "primary" here is used because books can link to other books, but

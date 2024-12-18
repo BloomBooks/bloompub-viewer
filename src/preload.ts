@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
       "book-ready-to-display",
       "uncaught-error",
       "switch-primary-book-failed",
+      "open-file",
     ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`

@@ -6,8 +6,18 @@ import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 
+//Create log file in temp directory
+const logPath = temp.path() + "-bloompubviewer.log";
+fs.appendFileSync(
+  logPath,
+  `\n[${new Date().toISOString()}] App Start
+Packaged: ${app.isPackaged}
+Command line arguments: ${JSON.stringify(process.argv)}\n`
+);
+
 let currentPrimaryBloomPubPath: string | undefined;
 let currentPrimaryBookUnpackedFolder: string | undefined;
+let launchFile: string | undefined;
 
 // Global exception handlers
 process.on("uncaughtException", (error) => {
@@ -57,6 +67,11 @@ const preloadPath =
   process.env.NODE_ENV === "development"
     ? Path.join(app.getAppPath(), "preload.js")
     : Path.join(__dirname, "preload.js");
+
+const validExtensions = [".bloomd", ".bloompub"];
+function hasValidExtension(filePath: string): boolean {
+  return validExtensions.some((ext) => filePath.toLowerCase().endsWith(ext));
+}
 
 function createWindow() {
   // Load the previous state with fallback to defaults

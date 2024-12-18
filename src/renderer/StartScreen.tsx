@@ -19,6 +19,22 @@ export const StartScreen: React.FunctionComponent<{
         * {
           color: #d65649;
         }
+
+        button {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            transform: scale(1.02);
+          }
+
+          &:active {
+            transform: scale(0.98);
+          }
+        }
       `}
     >
       {/* this is all the controls, centered in the window */}
@@ -46,27 +62,11 @@ export const StartScreen: React.FunctionComponent<{
               align-items: center;
 
               font-size: 24px;
-              background: none;
-              border: none;
-              padding: 0;
-              cursor: pointer;
-              transition: all 0.2s ease;
               width: 100%;
 
               img {
                 width: 30px;
                 margin-right: 15px;
-              }
-
-              &:hover {
-                transform: scale(1.02);
-                color: #e06357;
-                background-color: rgba(214, 86, 73, 0.05);
-              }
-
-              &:active {
-                transform: scale(0.98);
-                color: #c04d41;
               }
             }
           `}
@@ -106,23 +106,18 @@ export const StartScreen: React.FunctionComponent<{
                   flex-direction: column;
                   width: 140px;
                   height: 170px;
-                  border: none;
                   background: white;
-                  cursor: pointer;
                   padding: 0;
                   padding-bottom: 10px;
-                  transition: all 0.2s ease;
                   border-radius: 8px;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                   overflow: hidden;
 
                   &:hover {
-                    transform: translateY(-2px);
                     box-shadow: 0 4px 8px rgba(214, 86, 73, 0.2);
                   }
 
                   &:active {
-                    transform: translateY(0px);
                     box-shadow: 0 2px 4px rgba(214, 86, 73, 0.1);
                   }
 
@@ -209,19 +204,6 @@ export const StartScreen: React.FunctionComponent<{
           css={css`
             display: flex;
             align-items: center;
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            transition: all 0.2s ease;
-
-            &:hover {
-              transform: scale(1.02);
-            }
-
-            &:active {
-              transform: scale(0.98);
-            }
           `}
         >
           <img

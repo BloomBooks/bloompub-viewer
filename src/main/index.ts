@@ -152,15 +152,30 @@ ipcMain.on("exitFullScreen", () => {
   mainWindow!.setFullScreen(false);
 });
 
-ipcMain.on("get-file-that-launched-me", (event, arg) => {
-  // using app.isPackaged because the 2nd argument is a javascript path in dev mode
-  if (app.isPackaged && process.argv.length >= 2) {
-    console.log(JSON.stringify(process.argv));
-    var openFilePath = process.argv[1];
-    event.returnValue = openFilePath;
-  } else {
-    event.returnValue = ""; //"D:\\temp\\The Moon and the Cap.bloomd";
+// Handle files opened from recent documents on macOS.
+// I haven't learned how to do this on Windows yet.
+app.on("open-file", (event, filePath) => {
+  event.preventDefault();
+  if (hasValidExtension(filePath)) {
+    if (mainWindow) {
+      // TODO: not clear how the timing will work out, haven't tried it on a mac.
+      // It could be that we get this message too soon, before the renderer is ready to receive it.
+      mainWindow.webContents.send("open-file", filePath);
+    } else {
+      launchFile = filePath;
+    }
   }
+});
+
+ipcMain.on("get-file-that-launched-me", (event, arg) => {
+  // from a mac, we may have been given an event with the file to open
+  if (launchFile) {
+    event.returnValue = launchFile;
+    return;
+  }
+  // if we're running from `yarn dev`, the path will be the 3rd argument (normally empty, of course)
+  launchFile = process.argv[app.isPackaged ? 1 : 2];
+  event.returnValue = launchFile;
 });
 
 // "primary" here is used because books can link to other books, but

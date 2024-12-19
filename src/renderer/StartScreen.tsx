@@ -1,11 +1,11 @@
 import { css } from "@emotion/react";
-
 import React from "react";
 import wordmark from "../../assets/wordmark.svg";
 import search from "../../assets/Search.svg";
 import open from "../../assets/Open.svg";
 import silLogo from "../../assets/SIL_Logo_80pxTall.png";
 import { setNewPrimaryBloomPub } from "./App";
+import { validExtensions } from "../common/extensions";
 
 export const StartScreen: React.FunctionComponent<{
   recentBooks: RecentBook[];
@@ -234,11 +234,7 @@ export function showOpenFile() {
     filters: [
       {
         name: "BloomPUB Book",
-        extensions: ["bloomd", "bloompub"],
-      },
-      {
-        name: "Bloom Source Book",
-        extensions: ["bloom", "bloomSource"],
+        extensions: validExtensions.map((ext) => ext.replace(".", "")),
       },
     ],
   };

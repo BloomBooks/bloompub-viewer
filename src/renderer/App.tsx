@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
 import { compareVersions } from "compare-versions";
+import { hasValidExtension } from "../common/extensions";
 
 export let setNewPrimaryBloomPub: (path: string) => void;
 
@@ -127,10 +128,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
       const files = e.dataTransfer?.files;
       if (files && files.length > 0) {
         const file = files[0];
-        if (
-          file.name.toLowerCase().endsWith(".bloompub") ||
-          file.name.toLowerCase().endsWith(".bloomd")
-        ) {
+        if (hasValidExtension(file.name)) {
           setNewPrimaryBloomPub(file.path);
         }
       }

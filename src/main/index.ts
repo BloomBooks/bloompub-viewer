@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
+import { hasValidExtension } from "../common/extensions";
 
 //Create log file in temp directory
 const logPath = temp.path() + "-bloompubviewer.log";
@@ -67,11 +68,6 @@ const preloadPath =
   process.env.NODE_ENV === "development"
     ? Path.join(app.getAppPath(), "preload.js")
     : Path.join(__dirname, "preload.js");
-
-const validExtensions = [".bloomd", ".bloompub"];
-function hasValidExtension(filePath: string): boolean {
-  return validExtensions.some((ext) => filePath.toLowerCase().endsWith(ext));
-}
 
 function createWindow() {
   // Load the previous state with fallback to defaults
@@ -152,13 +148,15 @@ ipcMain.on("exitFullScreen", () => {
   mainWindow!.setFullScreen(false);
 });
 
-// Handle files opened from recent documents on macOS.
-// I haven't learned how to do this on Windows yet.
+// On MacOS, handle cases where
+// 1) the app is launched with a file
+// 2) when the OS subsequently asks us to open a file.
+// At the moment on Windows, we handle (1) via the command line args, but have no equivalent to (2).
 app.on("open-file", (event, filePath) => {
   event.preventDefault();
   if (hasValidExtension(filePath)) {
     if (mainWindow) {
-      // TODO: not clear how the timing will work out, haven't tried it on a mac.
+      // TODO: not clear how the timing will work out, haven't tried it.
       // It could be that we get this message too soon, before the renderer is ready to receive it.
       mainWindow.webContents.send("open-file", filePath);
     } else {

@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
 import { Octokit } from "@octokit/rest";
 import { compareVersions } from "compare-versions";
+import { hasValidExtension } from "../common/extensions";
 
 export let setNewPrimaryBloomPub: (path: string) => void;
 
@@ -18,6 +19,15 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   const [bloomPubPath, setBloomPubPath] = useState(props.primaryBloomPubPath);
   const [primaryHtmlPath, setPrimaryHtmlPath] = useState("");
   const [recentBooks, setRecentBooks] = useState<RecentBook[]>([]);
+
+  useEffect(() => {
+    if (props.primaryBloomPubPath) {
+      window.bloomPubViewMainApi.send(
+        "switch-primary-book",
+        props.primaryBloomPubPath
+      );
+    }
+  }, [props.primaryBloomPubPath]);
 
   useEffect(() => {
     setNewPrimaryBloomPub = (path: string) => {
@@ -100,6 +110,46 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
 
   useEffect(() => {
     setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
+  }, []);
+
+  // Add drag and drop support
+  useEffect(() => {
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.body.classList.add("drag-over");
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.body.classList.remove("drag-over");
+
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (hasValidExtension(file.name)) {
+          setNewPrimaryBloomPub(file.path);
+        }
+      }
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.body.classList.remove("drag-over");
+    };
+
+    document.addEventListener("dragover", handleDragOver);
+    document.addEventListener("drop", handleDrop);
+    document.addEventListener("dragleave", handleDragLeave);
+
+    return () => {
+      document.removeEventListener("dragover", handleDragOver);
+      document.removeEventListener("drop", handleDrop);
+      document.removeEventListener("dragleave", handleDragLeave);
+      document.body.classList.remove("drag-over");
+    };
   }, []);
 
   checkForNewVersion();

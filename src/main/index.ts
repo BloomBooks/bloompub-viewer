@@ -5,9 +5,20 @@ import * as fs from "fs";
 import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
+import { hasValidExtension } from "../common/extensions";
+
+//Create log file in temp directory
+const logPath = temp.path() + "-bloompubviewer.log";
+fs.appendFileSync(
+  logPath,
+  `\n[${new Date().toISOString()}] App Start
+Packaged: ${app.isPackaged}
+Command line arguments: ${JSON.stringify(process.argv)}\n`
+);
 
 let currentPrimaryBloomPubPath: string | undefined;
 let currentPrimaryBookUnpackedFolder: string | undefined;
+let launchFile: string | undefined;
 
 // Global exception handlers
 process.on("uncaughtException", (error) => {
@@ -137,15 +148,32 @@ ipcMain.on("exitFullScreen", () => {
   mainWindow!.setFullScreen(false);
 });
 
-ipcMain.on("get-file-that-launched-me", (event, arg) => {
-  // using app.isPackaged because the 2nd argument is a javascript path in dev mode
-  if (app.isPackaged && process.argv.length >= 2) {
-    console.log(JSON.stringify(process.argv));
-    var openFilePath = process.argv[1];
-    event.returnValue = openFilePath;
-  } else {
-    event.returnValue = ""; //"D:\\temp\\The Moon and the Cap.bloomd";
+// On MacOS, handle cases where
+// 1) the app is launched with a file
+// 2) when the OS subsequently asks us to open a file.
+// At the moment on Windows, we handle (1) via the command line args, but have no equivalent to (2).
+app.on("open-file", (event, filePath) => {
+  event.preventDefault();
+  if (hasValidExtension(filePath)) {
+    if (mainWindow) {
+      // TODO: not clear how the timing will work out, haven't tried it.
+      // It could be that we get this message too soon, before the renderer is ready to receive it.
+      mainWindow.webContents.send("open-file", filePath);
+    } else {
+      launchFile = filePath;
+    }
   }
+});
+
+ipcMain.on("get-file-that-launched-me", (event, arg) => {
+  // from a mac, we may have been given an event with the file to open
+  if (launchFile) {
+    event.returnValue = launchFile;
+    return;
+  }
+  // if we're running from `yarn dev`, the path will be the 3rd argument (normally empty, of course)
+  launchFile = process.argv[app.isPackaged ? 1 : 2];
+  event.returnValue = launchFile;
 });
 
 // "primary" here is used because books can link to other books, but

@@ -1,11 +1,11 @@
 import { css } from "@emotion/react";
-
 import React from "react";
 import wordmark from "../../assets/wordmark.svg";
 import search from "../../assets/Search.svg";
 import open from "../../assets/Open.svg";
 import silLogo from "../../assets/SIL_Logo_80pxTall.png";
 import { setNewPrimaryBloomPub } from "./App";
+import { validExtensions } from "../common/extensions";
 
 export const StartScreen: React.FunctionComponent<{
   recentBooks: RecentBook[];
@@ -18,6 +18,22 @@ export const StartScreen: React.FunctionComponent<{
         min-height: 100vh;
         * {
           color: #d65649;
+        }
+
+        button {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            transform: scale(1.02);
+          }
+
+          &:active {
+            transform: scale(0.98);
+          }
         }
       `}
     >
@@ -46,27 +62,11 @@ export const StartScreen: React.FunctionComponent<{
               align-items: center;
 
               font-size: 24px;
-              background: none;
-              border: none;
-              padding: 0;
-              cursor: pointer;
-              transition: all 0.2s ease;
               width: 100%;
 
               img {
                 width: 30px;
                 margin-right: 15px;
-              }
-
-              &:hover {
-                transform: scale(1.02);
-                color: #e06357;
-                background-color: rgba(214, 86, 73, 0.05);
-              }
-
-              &:active {
-                transform: scale(0.98);
-                color: #c04d41;
               }
             }
           `}
@@ -106,23 +106,18 @@ export const StartScreen: React.FunctionComponent<{
                   flex-direction: column;
                   width: 140px;
                   height: 170px;
-                  border: none;
                   background: white;
-                  cursor: pointer;
                   padding: 0;
                   padding-bottom: 10px;
-                  transition: all 0.2s ease;
                   border-radius: 8px;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                   overflow: hidden;
 
                   &:hover {
-                    transform: translateY(-2px);
                     box-shadow: 0 4px 8px rgba(214, 86, 73, 0.2);
                   }
 
                   &:active {
-                    transform: translateY(0px);
                     box-shadow: 0 2px 4px rgba(214, 86, 73, 0.1);
                   }
 
@@ -198,25 +193,36 @@ export const StartScreen: React.FunctionComponent<{
           align-items: center;
           padding: 20px;
           margin-top: auto;
-          // with these we're aiming to left-align with the controls above
           margin-left: auto;
           margin-right: auto;
           width: 500px;
-
-          img {
-            height: 30px;
-          }
-
-          .copyright {
-            margin-left: 10px;
-            //margin-top: auto;
-            font-size: 14px;
-            color: #005cb9 !important;
-          }
         `}
       >
-        <img src={silLogo} alt="SIL Logo" />
-        <span className="copyright">© 2025 SIL Global</span>
+        <button
+          onClick={() => window.bloomPubViewMainApi.openSIL()}
+          title="Visit SIL.org"
+          css={css`
+            display: flex;
+            align-items: center;
+          `}
+        >
+          <img
+            src={silLogo}
+            alt="SIL Logo"
+            css={css`
+              height: 30px;
+            `}
+          />
+          <span
+            css={css`
+              margin-left: 10px;
+              font-size: 14px;
+              color: #005cb9 !important;
+            `}
+          >
+            © SIL Global
+          </span>
+        </button>
       </div>
     </div>
   );
@@ -228,11 +234,7 @@ export function showOpenFile() {
     filters: [
       {
         name: "BloomPUB Book",
-        extensions: ["bloomd", "bloompub"],
-      },
-      {
-        name: "Bloom Source Book",
-        extensions: ["bloom", "bloomSource"],
+        extensions: validExtensions.map((ext) => ext.replace(".", "")),
       },
     ],
   };

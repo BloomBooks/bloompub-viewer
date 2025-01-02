@@ -2591,10 +2591,10 @@ bl@^1.0.0:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
 
-bloom-player@^2.8.0:
-  version "2.8.0"
-  resolved "https://registry.npmjs.org/bloom-player/-/bloom-player-2.8.0.tgz#53f4f260aca70d613f74f2d027ecbbf09217d678"
-  integrity sha512-88tfz0AaZArhf8oLWAEJ0DWE0JsUWaBWwCTw73TsiRvx0bu1Bsh+20wavxstiLl6ChCfWnZE6lBcnmExDN9ccw==
+bloom-player@^2.8.1:
+  version "2.8.1"
+  resolved "https://registry.npmjs.org/bloom-player/-/bloom-player-2.8.1.tgz#cf52a41a866854c8080623a574709153b6095e7c"
+  integrity sha512-R0m67FIp4b6QtBPUKhPtuErQYX/rxZBLBLdKWc0OlWfjGB9AkMpNB+VigskyRD9vMbzbXvn2MvJHC1F2LJJ7Zg==
 
 bluebird-lst@^1.0.9:
   version "1.0.9"

@@ -1,5 +1,7 @@
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import { getBloomPUBPathFromId } from "./bookFinder";
+import fs from "fs";
+import * as Path from "path";
 
 // When a book links to another book, it uses the /book/ prefix (see bloom-player Readme for more info).
 // This handles finding the bloompub, unpacking it if necessary,
@@ -30,7 +32,24 @@ export async function getPathToResourceFromAnotherBook(
 
   if (bookPath) {
     console.log("Have book at: " + bookPath);
-    const filePath = bookPath + "/" + requestedFile;
+
+    // Bloom Player will always request an index.htm. Unfortunately bloomPUB does not require the html
+    // file to have a certain name. So we need to search for an htm file in the book folder.
+    let fileNameToFetch: string | undefined = requestedFile;
+    if (
+      requestedFile === "index.htm" &&
+      !fs.existsSync(bookPath + "/" + requestedFile)
+    ) {
+      fileNameToFetch = fs
+        .readdirSync(bookPath)
+        .find((f) => Path.extname(f) === ".htm");
+      if (!fileNameToFetch) {
+        console.error(`No .htm file found in book folder: ${bookPath}`);
+        return undefined;
+      }
+    }
+
+    const filePath = bookPath + "/" + fileNameToFetch;
     console.log("Will request filePath: " + filePath);
     return filePath;
   } else {
@@ -42,7 +61,7 @@ export async function getPathToResourceFromAnotherBook(
 const bookIdToUnpackedFolder: { [key: string]: string } = {};
 
 // Because we can get multiple requests for a new book all at once
-// (typically for .distribution, meta.json, and index.htm) we use
+// (typically for .distribution, meta.json, and .htm) we use
 // this to make sure we aren't unpacking the same book multiple times.
 const ongoingUnpackOperations: Map<
   string,
@@ -58,7 +77,7 @@ async function getPathToBookUnpackIfNeeded(
     return undefined;
   }
 
-  // if the book is already unpacked, just return the path to the index.htm file
+  // if the book is already unpacked, just return the path to the .htm file
   if (bookId in bookIdToUnpackedFolder) {
     return bookIdToUnpackedFolder[bookId];
   }

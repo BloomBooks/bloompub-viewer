@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, screen } from "electron";
+import { app, BrowserWindow, ipcMain, protocol, shell } from "electron";
 import * as temp from "temp";
 import * as Path from "path";
 import * as fs from "fs";
@@ -106,6 +106,23 @@ function createWindow() {
 
   mainWindow.on("closed", () => {
     mainWindow = null;
+  });
+
+  // The following two event handlers prevent the app from opening external
+  // links in another electron window. Instead, they will open in the user's
+  // default browser. (BL-13803)
+  // I have no idea why the first handler is necessary to make the second one
+  // work as I would expect.  But it is.
+  mainWindow.webContents.on("will-frame-navigate", (event) => {
+    // Let the bpub: protocol handler do its thing.  Any other protocols will also
+    // be allowed to proceed.
+    if (event.url.startsWith("https://") || event.url.startsWith("http://")) {
+      event.preventDefault();
+    }
+  });
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
   });
 }
 

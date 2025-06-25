@@ -152,7 +152,10 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
     };
   }, []);
 
-  checkForNewVersion();
+  //Wrap checkForNewVersion in a useEffect hook with an empty dependency array so it doesn't create a new toast on every re-render
+  useEffect(()=>{
+    checkForNewVersion();
+  }, [])
 
   return (
     <>

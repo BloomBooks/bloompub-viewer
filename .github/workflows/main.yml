@@ -34,8 +34,8 @@ jobs:
         uses: sillsdev/codesign/trusted-signing-action@v3
         with:
           credentials: ${{ secrets.TRUSTED_SIGNING_CREDENTIALS }}
-          files-folder: .
-          files-folder-filter: "**/BloomPub*.exe"
+          files-folder: output
+          files-folder-filter: BloomPUB*.exe
           description: "BloomPUB Viewer Installer"
           description-url: "https://bloomlibrary.org/bloompub-viewer"
 
@@ -44,14 +44,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BloomPUB-Viewer-Installer
-          path: "**/BloomPub*.exe"
+          path: BloomPUB*.exe
           if-no-files-found: error
 
       - name: Create Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
-          files: "**/BloomPub*.exe"
+          files: BloomPUB*.exe
           body: |
             Release for version ${{ github.ref }}
           draft: true

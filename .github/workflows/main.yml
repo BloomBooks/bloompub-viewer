@@ -2,6 +2,9 @@ name: Build/release
 
 on:
   push:
+    tags:
+      - "v*"
+  pull_request:
     branches:
       - master
   workflow_dispatch:
@@ -44,6 +47,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: output/BloomPUB*.exe
+          name: ${{ github.ref_name }}
           body: |
             Release for version ${{ github.ref_name }}
           draft: true

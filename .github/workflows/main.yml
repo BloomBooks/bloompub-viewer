@@ -39,19 +39,11 @@ jobs:
           description: "BloomPUB Viewer Installer"
           description-url: "https://bloomlibrary.org/bloompub-viewer"
 
-      - name: Upload Signed Installer
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: BloomPUB-Viewer-Installer
-          path: BloomPUB*.exe
-          if-no-files-found: error
-
       - name: Create Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
-          files: BloomPUB*.exe
+          files: output/BloomPUB*.exe
           body: |
-            Release for version ${{ github.ref }}
+            Release for version ${{ github.ref_name }}
           draft: true

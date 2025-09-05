@@ -7,14 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-installer:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      # don't quit checking one OS just because another failed
-      fail-fast: false
-      matrix:
-        os: [windows-latest]
+  build-and-release:
+    runs-on: windows-latest
 
     steps:
       - name: Check out Git repository
@@ -27,53 +21,37 @@ jobs:
           node-version: 20
           cache: "yarn" # I always get 'yarn cache is not found' but ah well
 
-      - name: Build/release Electron app
-        # Let's only do this if the commit is tagged with a version
-        #if: startsWith(github.ref, 'refs/tags/v')
+      - name: Build Electron app
         uses: coparse-inc/action-electron-builder@v1.0.0
         env:
           in_github_action: "true"
         with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
+          release: false
 
-          # Once we can sign on GHA, remove this line and uncomment all the rest of this file, including "release: false"
-          release: true # ${{ startsWith(github.ref, 'refs/tags/v') }}
+      - name: Sign installer (for tagged releases only)
+        if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request'
+        uses: sillsdev/codesign/trusted-signing-action@v3
+        with:
+          credentials: ${{ secrets.TRUSTED_SIGNING_CREDENTIALS }}
+          files-folder: .
+          files-folder-filter: "**/BloomPub*.exe"
+          description: "BloomPUB Viewer Installer"
+          description-url: "https://bloomlibrary.org/bloompub-viewer"
 
+      - name: Upload Signed Installer
+        if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BloomPUB-Viewer-Installer
+          path: "**/BloomPub*.exe"
+          if-no-files-found: error
 
-  #         release: false
-
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: BloomPubViewerSetup
-  #         path: "**/BloomPub*.exe"
-  #         if-no-files-found: error
-
-  # sign-installer:
-  #   name: Sign installer
-  #   needs: build-installer
-  #   #if: startsWith(github.ref, 'refs/tags/v')
-  #   uses: sillsdev/codesign/.github/workflows/sign.yml@v2.1
-  #   with:
-  #     artifact: BloomPubViewerSetup
-  #   secrets:
-  #     certificate: ${{ secrets.CODESIGN_LSDEVSECTIGOEV }}
-
-  # create-release:
-  #   name: Create Release
-  #   needs: sign-installer
-  #   runs-on: windows-latest
-
-  #   steps:
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         name: BloomPubViewerSetup
-
-  #     - name: Create Release
-  #       uses: softprops/action-gh-release@v2
-  #       with:
-  #         files: "**/BloomPub*.exe"
-  #         body: |
-  #           Release for version ${{ github.ref }}
-  #         draft: true
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "**/BloomPub*.exe"
+          body: |
+            Release for version ${{ github.ref_name }}
+          draft: true

@@ -2591,10 +2591,10 @@ bl@^1.0.0:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
 
-bloom-player@2.14.3:
-  version "2.14.3"
-  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.14.3.tgz#bc49ba9812da32a974536516028238f608b95851"
-  integrity sha512-D4uYQgj4pUshMd4MOSiSzcar580xya71nG1kN8/+Pan66YOiVecZgLOUNvsUHp0bw6068Ev5PUSsRcVdykRmWA==
+bloom-player@2.16.0:
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.16.0.tgz#4a36cc4b6eafa270176cbda74421d3bcc6ff27e1"
+  integrity sha512-ZWqBJG0KKDuBgFPZTGxApyGwYHHzyDJqkZKe8TFt4g3dkqFNtGLM/pEG25m7gGTFHGiRD2bUZpcgmNyTnWYdXA==
 
 bluebird-lst@^1.0.9:
   version "1.0.9"

@@ -46,9 +46,12 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         # The signer changes the installer's name from BloomPUB-Viewer-Setup-<x.y.z>.exe to
-	# BloomPub.Viewer.Setup.<x.y.z>.exe.  The latter is what we want to release. (BL-15534)
+        # BloomPub.Viewer Setup <x.y.z>.exe.  (Uploading changes spaces to periods.)  The
+        # latter is what we want to release. (BL-15534)
         with:
-          files: output/BloomPUB.*.exe
+          files: |
+            output/BloomPUB *.exe
+            output/BloomPUB.*.exe
           name: ${{ github.ref_name }}
           body: |
             Release for version ${{ github.ref_name }}

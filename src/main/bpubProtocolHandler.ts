@@ -11,12 +11,11 @@ export async function bpubProtocolHandler(
   currentPrimaryBloomPubPath: string,
   currentUnpackedBookFolder: string // enhance probably we could look this up if we start remembering what is unpacked and where
 ) {
-  // Ignore certain file types
-  if (
-    request.url.endsWith(".map") ||
-    request.url.endsWith(".woff") ||
-    request.url.endsWith(".woff2")
-  ) {
+  // Ignore certain file types.
+  // Note, at one point, this was also capturing .woff and .woff2 requests,
+  // but that was causing embedded fonts to not load correctly (BL-15789).
+  // Since we couldn't determine why they had been included here, we removed them.
+  if (request.url.endsWith(".map")) {
     return new Response("Not Found", {
       status: 404,
       statusText: "Not Found",

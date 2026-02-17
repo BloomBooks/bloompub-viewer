@@ -52,7 +52,7 @@
     "@types/react-dom": "^18.0.6",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
-    "ajv": "^6.11.0",
+    "ajv": "^8.18.0",
     "babel-loader": "^8.0.6",
     "babel-plugin-istanbul": "^6.0.0",
     "babel-register": "^6.26.0",

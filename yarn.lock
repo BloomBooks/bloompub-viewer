@@ -2592,9 +2592,9 @@ bl@^1.0.0:
     safe-buffer "^5.1.1"
 
 bloom-player@^2.16.2:
-  version "2.19.0"
-  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.19.0.tgz#bd4b073669c0a0f0dd9de8351592540430f4aa4d"
-  integrity sha512-XxtazulJ6jQDN0LSvgf3KpOg9W+07k1JxO31HoJZ5eFN9iSriWPxM0Q7rwXpEroNu6QokExQ20DmfVfhOuY5tA==
+  version "2.19.1"
+  resolved "https://registry.yarnpkg.com/bloom-player/-/bloom-player-2.19.1.tgz#2da07893796c97dd066ffe98f3fbf232a24561ba"
+  integrity sha512-bQHpPZu6NJDgSu14OBnE9uHWsGkkG4RMCFvjMtt6CD4bA9Ri23ccwbqSHaveUON/psB7hUTVTuLHZPXgYCqCSA==
 
 bluebird-lst@^1.0.9:
   version "1.0.9"

@@ -188,7 +188,7 @@ ipcMain.on("get-file-that-launched-me", (event, arg) => {
     event.returnValue = launchFile;
     return;
   }
-  // if we're running from `yarn dev`, the path will be the 3rd argument (normally empty, of course)
+  // If we're running from the `dev` script, the path will be the 3rd argument.
   launchFile = process.argv[app.isPackaged ? 1 : 2];
   event.returnValue = launchFile;
 });

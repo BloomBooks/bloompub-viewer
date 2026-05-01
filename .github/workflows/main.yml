@@ -17,21 +17,23 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v4
-        # remember to keep this in sync with package.json's volta->node setting
+      - name: Install Node.js and pnpm as specified in package.json
+        uses: volta-cli/action@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
         with:
-          node-version: 20
-          cache: "yarn" # I always get 'yarn cache is not found' but ah well
+          version: 10.33.2
+          cache: true
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build Electron app
-        uses: coparse-inc/action-electron-builder@v1.0.0
         env:
           in_github_action: "true"
-        with:
-          args: "--publish never"
-          github_token: ${{ secrets.github_token }}
-          release: false
+        run: pnpm build:ci
 
       - name: Sign installer
         if: github.event_name != 'pull_request'

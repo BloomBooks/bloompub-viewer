@@ -6,10 +6,10 @@
 
 ```bash
 # install dependencies
-yarn
+pnpm install
 
 # serve with hot reload
-yarn dev
+pnpm dev
 ```
 
 ## Releasing

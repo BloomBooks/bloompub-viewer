@@ -20,7 +20,7 @@ function logStats(proc, data) {
   let log = "";
 
   log += chalk.yellow.bold(
-    `┏ ${proc} Process ${new Array(19 - proc.length + 1).join("-")}`
+    `┏ ${proc} Process ${new Array(19 - proc.length + 1).join("-")}`,
   );
   log += "\n\n";
 
@@ -46,7 +46,7 @@ function logStats(proc, data) {
 function startRenderer() {
   return new Promise((resolve, reject) => {
     rendererConfig.entry.renderer = [path.join(__dirname, "dev-client")].concat(
-      rendererConfig.entry.renderer
+      rendererConfig.entry.renderer,
     );
     rendererConfig.mode = "development";
     const compiler = webpack(rendererConfig);
@@ -61,7 +61,7 @@ function startRenderer() {
         (data, cb) => {
           hotMiddleware.publish({ action: "reload" });
           cb();
-        }
+        },
       );
     });
 
@@ -126,10 +126,11 @@ function startMain() {
 function startElectron() {
   var args = [path.join(__dirname, "../dist/electron/main.js")];
 
-  // detect yarn or npm and process commandline args accordingly
-  if (process.env.npm_execpath.endsWith("yarn.js")) {
+  // Yarn forwards args with an extra "--" marker; npm and pnpm do not.
+  const npmExecPath = process.env.npm_execpath || "";
+  if (npmExecPath.endsWith("yarn.js") || npmExecPath.endsWith("yarn.cjs")) {
     args = args.concat(process.argv.slice(3));
-  } else if (process.env.npm_execpath.endsWith("npm-cli.js")) {
+  } else {
     args = args.concat(process.argv.slice(2));
   }
 
@@ -159,7 +160,7 @@ function electronLog(data, color) {
         "\n\n" +
         log +
         chalk[color].bold("┗ ----------------------------") +
-        "\n"
+        "\n",
     );
   }
 }

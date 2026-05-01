@@ -1,0 +1,20 @@
+# Delay adoption of newly published versions by 7 days (10080 minutes).
+minimumReleaseAge: 10080
+
+# Reject non-registry transitive dependency sources such as git/file/url deps.
+blockExoticSubdeps: true
+
+# Fail install when a dependency wants to run lifecycle/build scripts unless allowed below.
+strictDepBuilds: true
+
+# Narrow allowlist for packages whose install-time scripts are required in this repo.
+allowBuilds:
+  # core-js uses postinstall for messaging, not functionality.
+  core-js@2.6.12: false
+  # highlight.js uses postinstall for messaging, not functionality.
+  highlight.js@9.18.5: false
+  # Electron downloads the runtime binary used by local development and packaging.
+  electron@30.5.1: true
+
+# Save exact versions in package.json instead of adding ^ or ~ prefixes.
+savePrefix: ""

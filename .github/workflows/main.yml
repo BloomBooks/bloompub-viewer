@@ -17,23 +17,21 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js and pnpm as specified in package.json
-        uses: volta-cli/action@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5
+      - name: Set up Vite+ (Node + pnpm)
+        # Reads the Node version from .node-version and the pnpm version from
+        # the package.json "packageManager" field. Replaces Volta + pnpm/action-setup.
+        uses: voidzero-dev/setup-vp@v1
         with:
-          version: 10.33.2
           cache: true
-          run_install: false
+          run-install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: vp install --frozen-lockfile
 
       - name: Build Electron app
         env:
           in_github_action: "true"
-        run: pnpm build:ci
+        run: vp run build:ci
 
       - name: Sign installer
         if: github.event_name != 'pull_request'

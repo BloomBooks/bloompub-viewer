@@ -4,12 +4,17 @@
 
 ## Building
 
+This repo uses [Vite+](https://viteplus.dev/) (`vp`) to manage the Node and pnpm
+versions. Install it once (see the [Vite+ install guide](https://viteplus.dev/guide/)),
+and it will automatically use the Node version from `.node-version` and the pnpm
+version from the `packageManager` field in `package.json`.
+
 ```bash
 # install dependencies
-yarn
+vp install
 
 # serve with hot reload
-yarn dev
+vp run dev
 ```
 
 ## Releasing

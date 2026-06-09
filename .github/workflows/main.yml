@@ -17,21 +17,21 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v4
-        # remember to keep this in sync with package.json's volta->node setting
+      - name: Set up Vite+ (Node + pnpm)
+        # Reads the Node version from .node-version and the pnpm version from
+        # the package.json "packageManager" field. Replaces Volta + pnpm/action-setup.
+        uses: voidzero-dev/setup-vp@v1
         with:
-          node-version: 20
-          cache: "yarn" # I always get 'yarn cache is not found' but ah well
+          cache: true
+          run-install: false
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
 
       - name: Build Electron app
-        uses: coparse-inc/action-electron-builder@v1.0.0
         env:
           in_github_action: "true"
-        with:
-          args: "--publish never"
-          github_token: ${{ secrets.github_token }}
-          release: false
+        run: vp run build:ci
 
       - name: Sign installer
         if: github.event_name != 'pull_request'

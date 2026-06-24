@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-release:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -53,6 +53,45 @@ jobs:
           files: |
             output/BloomPUB *.exe
             output/BloomPUB.*.exe
+          name: ${{ github.ref_name }}
+          body: |
+            Release for version ${{ github.ref_name }}
+          draft: true
+
+  build-linux:
+    runs-on: ubuntu-latest
+    # Run after the Windows job so both upload into the same draft release
+    # rather than racing to create two separate drafts for the same tag.
+    needs: build-windows
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Vite+ (Node + pnpm)
+        # Reads the Node version from .node-version and the pnpm version from
+        # the package.json "packageManager" field.
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          cache: true
+          run-install: false
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: Build Electron app
+        # On a Linux host this produces the .deb configured in electron-builder.json5.
+        # No code signing step: .deb packages are not signed like the Windows installer.
+        env:
+          in_github_action: "true"
+        run: vp run build:ci
+
+      - name: Create Release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            output/*.deb
           name: ${{ github.ref_name }}
           body: |
             Release for version ${{ github.ref_name }}

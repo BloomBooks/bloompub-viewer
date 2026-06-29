@@ -65,5 +65,13 @@
     maintainer: "stephen_mcconnel@sil.org",
     icon: "assets/linux",
   },
-  deb: {},
+  deb: {
+    // This file provides the information needed by AppArmor to allow bloompub-viewer to run.
+    appArmorProfile: "assets/deb/bloompub-viewer",
+    // These files fix a bug in detecting user namespaces, and also a bug in allowing spaces
+    // in the destination directory name.  Spaces are technically legal, but a lot of Linux
+    // software (like AppArmor) doesn't allow for them.
+    afterInstall: "assets/deb/postinst.sh",
+    afterRemove: "assets/deb/postrm.sh",
+  },
 }

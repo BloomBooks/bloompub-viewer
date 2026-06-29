@@ -20,5 +20,14 @@ allowBuilds:
   # Electron downloads the runtime binary used by local development and packaging.
   electron@30.5.1: true
 
+# Acknowledge dependencies whose install scripts we intentionally do NOT run.
+# (The allowBuilds list above is not honored by pnpm 10.33 for suppressing the
+# ERR_PNPM_IGNORED_BUILDS error; this native pnpm key is.)
+# electron-winstaller is pulled in by electron-builder 26; its install script
+# downloads Squirrel.Windows binaries. We build the nsis target, not Squirrel,
+# so the script is not needed.
+ignoredBuiltDependencies:
+  - electron-winstaller
+
 # Save exact versions in package.json instead of adding ^ or ~ prefixes.
 savePrefix: ""

@@ -24,8 +24,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       bloom-player:
-        specifier: 2.19.5
-        version: 2.19.5
+        specifier: 2.20.1
+        version: 2.20.1
       compare-versions:
         specifier: 6.1.1
         version: 6.1.1
@@ -1653,8 +1653,8 @@ packages:
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
 
-  bloom-player@2.19.5:
-    resolution: {integrity: sha512-DmOVqB5PiuDBPxGB45xkwlAABmj7kgX87DBdXnVeAUnNXSbzB37dxJ7D8GrxDAGbNO4ZFA8n12DmLEklb8UJ1A==}
+  bloom-player@2.20.1:
+    resolution: {integrity: sha512-OgcZQYYBSmY1UhrmJhM7mcBbjvj/JyVQxymdOJYDfb0sLTRJGTl4xOCQFtmiqQ4yVyCq7nYeTZpPxBQHytwx8A==}
 
   bluebird@3.7.2:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
@@ -2937,6 +2937,10 @@ packages:
 
   fs-extra@11.3.5:
     resolution: {integrity: sha512-eKpRKAovdpZtR1WopLHxlBWvAgPny3c4gX1G5Jhwmmw4XJj0ifSD5qB5TOo8hmA0wlRKDAOAhEE1yVPgs6Fgcg==}
+    engines: {node: '>=14.14'}
+
+  fs-extra@11.3.6:
+    resolution: {integrity: sha512-w8ZNZr2mKIc7qeNaQ9AVPT1+iFaI+Avd4xudVOvdDJ8VytREi1Ft5Ih7hd9jjehod8vAM5GMsfQ/TpPf4EyoEA==}
     engines: {node: '>=14.14'}
 
   fs-extra@7.0.1:
@@ -6948,7 +6952,7 @@ snapshots:
     dependencies:
       cross-dirname: 0.1.0
       debug: 4.4.3(supports-color@6.1.0)
-      fs-extra: 11.3.5
+      fs-extra: 11.3.6
       minimist: 1.2.8
       postject: 1.0.0-alpha.6
     transitivePeerDependencies:
@@ -8008,7 +8012,7 @@ snapshots:
       file-uri-to-path: 1.0.0
     optional: true
 
-  bloom-player@2.19.5: {}
+  bloom-player@2.20.1: {}
 
   bluebird@3.7.2: {}
 
@@ -9857,6 +9861,13 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 6.2.1
       universalify: 2.0.1
+
+  fs-extra@11.3.6:
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 6.2.1
+      universalify: 2.0.1
+    optional: true
 
   fs-extra@7.0.1:
     dependencies:

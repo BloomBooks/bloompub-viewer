@@ -59,9 +59,14 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   useEffect(() => {
     const unsubscribe = window.bloomPubViewMainApi.receive(
       "uncaught-error",
-      (errorMessage) => {
+      // Not necessarily a string: index.ts sends error.message for uncaughtException
+      // but the raw rejection reason for unhandledRejection, both on this channel.
+      // Passing the raw value through to toastId keeps existing behavior --
+      // react-toastify ignores a toastId that isn't a string or number and
+      // generates one instead, so those toasts simply don't de-duplicate.
+      (errorMessage: unknown) => {
         toast.error(`${errorMessage}`, {
-          toastId: errorMessage,
+          toastId: errorMessage as string | number,
           position: "top-center",
           autoClose: 3000,
           hideProgressBar: false,

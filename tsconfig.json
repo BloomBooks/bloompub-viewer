@@ -2,6 +2,10 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "commonjs",
+    // TypeScript 7 removed "node10"/"classic" resolution, so "bundler" is the only
+    // option left for a bundled app like this one. It is also the TS 6+ default;
+    // we state it explicitly so the intent survives future default changes.
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "jsx": "react-jsx",
     "jsxImportSource": "@emotion/react",
@@ -12,22 +16,33 @@
     ],
     "lib": [
       "dom",
-      "es6",
-      "es2015",
-      "scripthost",
-      "es2017.object"
+      "dom.iterable",
+      "es2017"
     ],
-    "experimentalDecorators": true,
-    "alwaysStrict": true,
+    // TS 6 turns "strict" on by default; set it explicitly so the level is visible
+    // here rather than inherited from whichever compiler version happens to run.
+    "strict": true,
     "noImplicitReturns": true,
-    "strictNullChecks": true,
+    // Our webpack loaders transpile file-by-file (ts-loader transpileOnly + babel),
+    // so reject constructs that need whole-program knowledge to emit correctly.
+    "isolatedModules": true,
+    // react-toastify 9.0.3's "exports" map has no "types" condition and its declarations
+    // sit at dist/index.d.ts rather than beside dist/react-toastify.js, so exports-based
+    // resolution cannot find them. (It used to work only because the pre-TS-6 default
+    // "node10" resolution read the legacy "typings" field instead of "exports".)
+    // 9.1.3+ adds the "types" condition, but also switches "module" to an .mjs file that
+    // webpack 4 cannot interop with CommonJS React -- so point at the declarations here
+    // instead. Drop this once webpack is upgraded and react-toastify can move with it.
+    // Affects type resolution only; webpack resolves the runtime entry via "module".
+    "paths": {
+      "react-toastify": ["./node_modules/react-toastify/dist/index.d.ts"]
+    },
     "resolveJsonModule": true,
-    "esModuleInterop": true
-  },
-  "paths": {
-    "react": [
-      "./node_modules/@types/react"
-    ]
+    "esModuleInterop": true,
+    // electron 30's bundled electron.d.ts declares process.noDeprecation as required
+    // while @types/node declares it optional. We cannot fix either declaration and
+    // both TS 6 and 7 flag the conflict, so don't type-check dependency .d.ts files.
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",

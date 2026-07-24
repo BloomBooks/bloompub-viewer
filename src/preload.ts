@@ -4,14 +4,14 @@ import * as remote from "@electron/remote";
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer, remote, and shell without exposing the entire objects
 contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
-  sendSync: (channel: string, data) => {
+  sendSync: (channel: string, data: any) => {
     // whitelist channels
     let validChannels = ["get-file-that-launched-me", "toggleFullScreen"];
     if (validChannels.includes(channel)) {
       return ipcRenderer.sendSync(channel, data);
     }
   },
-  send: (channel: string, data) => {
+  send: (channel: string, data: any) => {
     // whitelist channels
     let validChannels = [
       "switch-primary-book",
@@ -23,7 +23,7 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
       ipcRenderer.send(channel, data);
     }
   },
-  receive: (channel: string, func) => {
+  receive: (channel: string, func: (...args: any[]) => void) => {
     let validChannels = [
       "book-ready-to-display",
       "uncaught-error",
@@ -62,7 +62,7 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
     remote.Menu.setApplicationMenu(menu);
   },
 
-  showOpenDialog: (options, func) => {
+  showOpenDialog: (options: any, func: (filePath: string) => void) => {
     remote.dialog
       .showOpenDialog(options as Electron.OpenDialogOptions)
       .then((result) => {

@@ -21,19 +21,23 @@ let currentPrimaryBloomPubPath: string | undefined;
 let currentPrimaryBookUnpackedFolder: string | undefined;
 let launchFile: string | undefined;
 
-// Global exception handlers
+// Global exception handlers.
+//
+// Both of these must send *text* on the "uncaught-error" channel, for two reasons.
+// The renderer tags the error toast with this value so a repeated error shows only
+// once, and react-toastify ignores a tag that isn't a string or number -- so
+// sending an object silently defeated that de-duplication. Worse, react-toastify
+// drops a toast whose content isn't a string, number, function or element outright,
+// so a non-string here means the user gets torn back to the start screen with no
+// message at all. Node hands us the thrown value verbatim, so neither `error.message`
+// nor `reason` can be assumed to be a string however they are typed.
 process.on("uncaughtException", (error) => {
   if (mainWindow) {
-    mainWindow.webContents.send("uncaught-error", error.message);
+    mainWindow.webContents.send("uncaught-error", `${error?.message ?? error}`);
   }
 });
 process.on("unhandledRejection", (reason) => {
   if (mainWindow) {
-    // Convert to text here rather than sending the raw reason. The renderer tags
-    // the error toast with this value so a repeated error shows only once, and
-    // react-toastify ignores a tag that isn't a string or number -- so sending an
-    // object silently defeated the de-duplication and stacked up a toast per
-    // occurrence. The displayed wording is unchanged either way.
     mainWindow.webContents.send("uncaught-error", `${reason}`);
   }
 });

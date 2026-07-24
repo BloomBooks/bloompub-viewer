@@ -58,8 +58,9 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   useEffect(() => {
     window.bloomPubViewMainApi.receive(
       "uncaught-error",
-      // Always text: index.ts converts the unhandledRejection reason to a string
-      // before sending, so toastId below reliably de-duplicates repeats.
+      // Always text: both senders in index.ts stringify before sending, so toastId
+      // below reliably de-duplicates repeats and react-toastify never sees content
+      // it would silently refuse to render.
       (errorMessage: string) => {
         toast.error(errorMessage, {
           toastId: errorMessage,

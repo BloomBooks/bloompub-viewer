@@ -82,7 +82,11 @@ interface Window {
   bloomPubViewMainApi: {
     sendSync: (channel: string, ...arg: any) => any;
     send: (channel: string, ...arg: any) => void;
-    receive: (channel: string, func: (...args: any[]) => void) => any;
+    // Returns nothing: the listener is registered for the life of the window and
+    // there is no way to remove it again. Declared `void` rather than `any` so that
+    // treating the result as an unsubscribe function is a compile error, not a
+    // silently-dead cleanup.
+    receive: (channel: string, func: (...args: any[]) => void) => void;
     openLibrary: () => void;
     openDownloadPage: (downloadLink: string) => void;
     openSIL: () => void;

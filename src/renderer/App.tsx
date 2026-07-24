@@ -42,7 +42,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   }, []);
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "book-ready-to-display",
       (receivedBloomPubPath: string, indexHtmlPath: string) => {
         console.log(
@@ -53,11 +53,10 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
-    return () => unsubscribe?.();
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "uncaught-error",
       // Not necessarily a string: index.ts sends error.message for uncaughtException
       // but the raw rejection reason for unhandledRejection, both on this channel.
@@ -78,11 +77,10 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setPrimaryHtmlPath("");
       }
     );
-    return () => unsubscribe?.();
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "switch-primary-book-failed",
       (receivedBloomPubPath: string, reason: string) => {
         toast.error(`Something went wrong opening that book: ${reason}`);
@@ -92,7 +90,6 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
-    return () => unsubscribe?.();
   }, []);
   useEffect(() => {
     const handleBackButton = (event: MessageEvent) => {

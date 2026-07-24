@@ -42,7 +42,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   }, []);
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "book-ready-to-display",
       (receivedBloomPubPath: string, indexHtmlPath: string) => {
         console.log(
@@ -53,14 +53,16 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
-    return () => unsubscribe?.();
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "uncaught-error",
-      (errorMessage) => {
-        toast.error(`${errorMessage}`, {
+      // Always text: both senders in index.ts stringify before sending, so toastId
+      // below reliably de-duplicates repeats and react-toastify never sees content
+      // it would silently refuse to render.
+      (errorMessage: string) => {
+        toast.error(errorMessage, {
           toastId: errorMessage,
           position: "top-center",
           autoClose: 3000,
@@ -73,11 +75,10 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setPrimaryHtmlPath("");
       }
     );
-    return () => unsubscribe?.();
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "switch-primary-book-failed",
       (receivedBloomPubPath: string, reason: string) => {
         toast.error(`Something went wrong opening that book: ${reason}`);
@@ -87,7 +88,6 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
-    return () => unsubscribe?.();
   }, []);
   useEffect(() => {
     const handleBackButton = (event: MessageEvent) => {
@@ -99,7 +99,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
           if (data.messageType === "backButtonClicked") {
             setNewPrimaryBloomPub("");
           }
-        } catch (err) {
+        } catch {
           //some other message, not the kind bloom-player sends
         }
       }

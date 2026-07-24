@@ -97,7 +97,7 @@ async function updateBookCache(rootFolderPath: string): Promise<void> {
     throw new Error(`Folder not found: ${rootFolderPath}`);
   }
 
-  let cache = loadCache(rootFolderPath);
+  const cache = loadCache(rootFolderPath);
   let cacheModified = false;
 
   const files = fs

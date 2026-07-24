@@ -6,6 +6,7 @@ import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 import { hasValidExtension } from "../common/extensions";
+import packageJson from "../../package.json";
 
 //Create log file in temp directory
 const logPath = temp.path() + "-bloompubviewer.log";
@@ -20,15 +21,24 @@ let currentPrimaryBloomPubPath: string | undefined;
 let currentPrimaryBookUnpackedFolder: string | undefined;
 let launchFile: string | undefined;
 
-// Global exception handlers
+// Global exception handlers.
+//
+// Both of these must send *text* on the "uncaught-error" channel, for two reasons.
+// The renderer tags the error toast with this value so a repeated error shows only
+// once, and react-toastify ignores a tag that isn't a string or number -- so
+// sending an object silently defeated that de-duplication. Worse, react-toastify
+// drops a toast whose content isn't a string, number, function or element outright,
+// so a non-string here means the user gets torn back to the start screen with no
+// message at all. Node hands us the thrown value verbatim, so neither `error.message`
+// nor `reason` can be assumed to be a string however they are typed.
 process.on("uncaughtException", (error) => {
   if (mainWindow) {
-    mainWindow.webContents.send("uncaught-error", error.message);
+    mainWindow.webContents.send("uncaught-error", `${error?.message ?? error}`);
   }
 });
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason) => {
   if (mainWindow) {
-    mainWindow.webContents.send("uncaught-error", reason);
+    mainWindow.webContents.send("uncaught-error", `${reason}`);
   }
 });
 
@@ -37,9 +47,7 @@ process.on("unhandledRejection", (reason, promise) => {
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
 if (process.env.NODE_ENV !== "development") {
-  global.__static = require("path")
-    .join(__dirname, "/static")
-    .replace(/\\/g, "\\\\");
+  global.__static = Path.join(__dirname, "/static").replace(/\\/g, "\\\\");
 }
 
 // Register our internal scheme ("bpub") as standard.  A standard scheme adheres to what is
@@ -93,12 +101,19 @@ function createWindow() {
     },
     //windows
     icon: Path.join(__dirname, "../../assets/windows.ico"),
-    title: "BloomPUB Viewer " + require("../../package.json").version,
+    title: "BloomPUB Viewer " + packageJson.version,
   });
 
   mainWindowState.manage(mainWindow);
 
+  // Deliberately require()d here rather than imported at the top: @electron/remote's
+  // main-side module has setup side effects, and loading it lazily inside
+  // createWindow keeps those from running at main-process startup. Left as-is
+  // because changing when it loads is exactly the kind of Electron init-order
+  // change that fails at runtime rather than at build time.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("@electron/remote/main").enable(mainWindow.webContents);
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("@electron/remote/main").initialize();
 
   mainWindow.loadURL(winURL);
@@ -156,7 +171,7 @@ ipcMain.on("toggleFullScreen", (event) => {
   mainWindow!.setFullScreen(makeFullScreen);
   event.returnValue = makeFullScreen;
 });
-ipcMain.on("toggleDevTools", (event) => {
+ipcMain.on("toggleDevTools", () => {
   mainWindow!.webContents.toggleDevTools();
 });
 
@@ -182,7 +197,7 @@ app.on("open-file", (event, filePath) => {
   }
 });
 
-ipcMain.on("get-file-that-launched-me", (event, arg) => {
+ipcMain.on("get-file-that-launched-me", (event) => {
   // from a mac, we may have been given an event with the file to open
   if (launchFile) {
     event.returnValue = launchFile;

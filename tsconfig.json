@@ -1,6 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    // electron 30 bundles Chromium 124 and Node 20, so the runtime could happily
+    // take es2022; the ceiling here is webpack, not electron. ts-loader is the only
+    // thing transforming our source (no babel-loader is wired into webpack), so this
+    // option alone decides the emitted syntax -- and webpack 4's parser cannot read
+    // optional chaining (`?.`, ES2020), which we use in linkedBookLoader.ts and
+    // App.tsx. At es2015 TypeScript happened to down-level it for us; anything from
+    // es2020 up emits it natively and webpack 4 fails with "Module parse failed:
+    // Unexpected token". es2019 is therefore the highest we can go until webpack is
+    // upgraded, and it still buys native async/await instead of the generator-based
+    // __awaiter/__generator helpers es2015 was emitting.
+    "target": "es2019",
     "module": "commonjs",
     // TypeScript 7 removed "node10"/"classic" resolution, so "bundler" is the only
     // option left for a bundled app like this one. It is also the TS 6+ default;
@@ -14,10 +24,14 @@
       /*"@emotion/react",
       "@emotion/react/types/css-prop"*/
     ],
+    // Deliberately ahead of "target": lib only declares which built-in methods
+    // exist at runtime, it does not enable any syntax, and electron 30's Chromium
+    // 124 / Node 20 really do have the es2022 built-ins. Only the emitted *syntax*
+    // is capped by webpack (see "target" above), so don't "tidy" these to match.
     "lib": [
       "dom",
       "dom.iterable",
-      "es2017"
+      "es2022"
     ],
     // TS 6 turns "strict" on by default; set it explicitly so the level is visible
     // here rather than inherited from whichever compiler version happens to run.

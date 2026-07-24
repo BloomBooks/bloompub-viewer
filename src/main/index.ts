@@ -28,7 +28,12 @@ process.on("uncaughtException", (error) => {
 });
 process.on("unhandledRejection", (reason, promise) => {
   if (mainWindow) {
-    mainWindow.webContents.send("uncaught-error", reason);
+    // Convert to text here rather than sending the raw reason. The renderer tags
+    // the error toast with this value so a repeated error shows only once, and
+    // react-toastify ignores a tag that isn't a string or number -- so sending an
+    // object silently defeated the de-duplication and stacked up a toast per
+    // occurrence. The displayed wording is unchanged either way.
+    mainWindow.webContents.send("uncaught-error", `${reason}`);
   }
 });
 

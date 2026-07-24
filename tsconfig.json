@@ -39,9 +39,17 @@
     },
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    // electron 30's bundled electron.d.ts declares process.noDeprecation as required
-    // while @types/node declares it optional. We cannot fix either declaration and
-    // both TS 6 and 7 flag the conflict, so don't type-check dependency .d.ts files.
+    // Don't type-check dependency .d.ts files. Forced by a conflict we don't own:
+    // electron 30's bundled electron.d.ts declares process.noDeprecation as
+    // required while @types/node declares it optional, and both TS 6 and TS 7
+    // reject the contradiction.
+    //
+    // Decided (BL-16267, 2026-07) to keep this rather than chase the alternatives.
+    // Pinning @types/node lower is a dead end -- v20 cannot compile under TS 6 at
+    // all, and anything new enough carries the same optional-property change. The
+    // real fix is upgrading electron, which is its own job with its own testing.
+    // The cost we accept: a genuine incompatibility introduced by a future
+    // dependency bump won't be caught here. Revisit when electron is upgraded.
     "skipLibCheck": true
   },
   "exclude": [

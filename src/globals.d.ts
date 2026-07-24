@@ -92,7 +92,9 @@ interface Window {
     openSIL: () => void;
     addRecentDocument: (bloomPubPath: string) => void;
     quit: () => void;
-    setApplicationMenu: (template: Array<any>) => void;
+    setApplicationMenu: (
+      template: Electron.MenuItemConstructorOptions[]
+    ) => void;
     showOpenDialog: (options: any, func: (filePath: string) => void) => void;
     getCurrentAppVersion: () => string;
     getRecentBooks: () => Array<RecentBook>;

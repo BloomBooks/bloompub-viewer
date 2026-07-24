@@ -98,7 +98,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
           if (data.messageType === "backButtonClicked") {
             setNewPrimaryBloomPub("");
           }
-        } catch (err) {
+        } catch {
           //some other message, not the kind bloom-player sends
         }
       }

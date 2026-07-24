@@ -48,7 +48,10 @@ function updateMainMenu() {
           setNewPrimaryBloomPub("");
         },
       },
-    ],
+      // Typed as Electron's own menu shape so the { role: "quit" } item pushed in
+      // below fits without a cast; inferring it from these two entries alone would
+      // make `label` and `click` mandatory.
+    ] as Electron.MenuItemConstructorOptions[],
   };
 
   const viewMenu = {
@@ -96,10 +99,10 @@ function updateMainMenu() {
 
   if (fileMenu && process.platform !== "darwin") {
     //fileMenu.submenu.push({ type: "separator" });
-    fileMenu.submenu.push({ role: "quit" } as any);
+    fileMenu.submenu.push({ role: "quit" });
   }
 
-  const template = Array<any>();
+  const template: Electron.MenuItemConstructorOptions[] = [];
   if (process.platform === "darwin") {
     template.push(macMenu);
   }

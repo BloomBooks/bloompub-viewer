@@ -6,6 +6,7 @@ import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 import { hasValidExtension } from "../common/extensions";
+import packageJson from "../../package.json";
 
 //Create log file in temp directory
 const logPath = temp.path() + "-bloompubviewer.log";
@@ -26,7 +27,7 @@ process.on("uncaughtException", (error) => {
     mainWindow.webContents.send("uncaught-error", error.message);
   }
 });
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason) => {
   if (mainWindow) {
     // Convert to text here rather than sending the raw reason. The renderer tags
     // the error toast with this value so a repeated error shows only once, and
@@ -42,9 +43,7 @@ process.on("unhandledRejection", (reason, promise) => {
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
 if (process.env.NODE_ENV !== "development") {
-  global.__static = require("path")
-    .join(__dirname, "/static")
-    .replace(/\\/g, "\\\\");
+  global.__static = Path.join(__dirname, "/static").replace(/\\/g, "\\\\");
 }
 
 // Register our internal scheme ("bpub") as standard.  A standard scheme adheres to what is
@@ -98,12 +97,19 @@ function createWindow() {
     },
     //windows
     icon: Path.join(__dirname, "../../assets/windows.ico"),
-    title: "BloomPUB Viewer " + require("../../package.json").version,
+    title: "BloomPUB Viewer " + packageJson.version,
   });
 
   mainWindowState.manage(mainWindow);
 
+  // Deliberately require()d here rather than imported at the top: @electron/remote's
+  // main-side module has setup side effects, and loading it lazily inside
+  // createWindow keeps those from running at main-process startup. Left as-is
+  // because changing when it loads is exactly the kind of Electron init-order
+  // change that fails at runtime rather than at build time.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("@electron/remote/main").enable(mainWindow.webContents);
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("@electron/remote/main").initialize();
 
   mainWindow.loadURL(winURL);
@@ -161,7 +167,7 @@ ipcMain.on("toggleFullScreen", (event) => {
   mainWindow!.setFullScreen(makeFullScreen);
   event.returnValue = makeFullScreen;
 });
-ipcMain.on("toggleDevTools", (event) => {
+ipcMain.on("toggleDevTools", () => {
   mainWindow!.webContents.toggleDevTools();
 });
 
@@ -187,7 +193,7 @@ app.on("open-file", (event, filePath) => {
   }
 });
 
-ipcMain.on("get-file-that-launched-me", (event, arg) => {
+ipcMain.on("get-file-that-launched-me", (event) => {
   // from a mac, we may have been given an event with the file to open
   if (launchFile) {
     event.returnValue = launchFile;

@@ -111,7 +111,13 @@ function createWindow() {
   // a bare require() alone, so it would have survived into main.js and thrown at
   // startup in a packaged build, where there is no node_modules to resolve it from.
   remoteMain.enable(mainWindow.webContents);
-  remoteMain.initialize();
+  // enable() is per-webContents, but initialize() is process-wide and throws
+  // "@electron/remote has already been initialized" if called twice. createWindow()
+  // runs again on macOS when the window is closed and the app is reactivated from
+  // the Dock, which would otherwise crash here and leave the window unable to reopen.
+  if (!remoteMain.isInitialized()) {
+    remoteMain.initialize();
+  }
 
   if (devServerUrl) {
     mainWindow.loadURL(devServerUrl);

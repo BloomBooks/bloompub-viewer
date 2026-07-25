@@ -6,6 +6,7 @@ import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 import { hasValidExtension } from "../common/extensions";
+import * as remoteMain from "@electron/remote/main";
 import packageJson from "../../package.json";
 
 //Create log file in temp directory
@@ -67,15 +68,14 @@ let mainWindow: BrowserWindow | null;
 // Automatically track and remove temp folders of unzipped files at exit.
 temp.track();
 
-const winURL =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:9080"
-    : `file://${__dirname}/index.html`;
+// electron-vite sets ELECTRON_RENDERER_URL while serving; when it is absent we are
+// running a built app and load the index.html that sits beside main.js.
+const devServerUrl = process.env.ELECTRON_RENDERER_URL;
 
-const preloadPath =
-  process.env.NODE_ENV === "development"
-    ? Path.join(app.getAppPath(), "preload.js")
-    : Path.join(__dirname, "preload.js");
+// main.js and preload.js are emitted side by side into dist/electron in both dev
+// and production, so one path works for both. (loadFile below is likewise used in
+// place of building a "file://" string, which mishandled paths containing spaces.)
+const preloadPath = Path.join(__dirname, "preload.js");
 
 function createWindow() {
   // Load the previous state with fallback to defaults
@@ -106,17 +106,18 @@ function createWindow() {
 
   mainWindowState.manage(mainWindow);
 
-  // Deliberately require()d here rather than imported at the top: @electron/remote's
-  // main-side module has setup side effects, and loading it lazily inside
-  // createWindow keeps those from running at main-process startup. Left as-is
-  // because changing when it loads is exactly the kind of Electron init-order
-  // change that fails at runtime rather than at build time.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require("@electron/remote/main").enable(mainWindow.webContents);
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require("@electron/remote/main").initialize();
+  // Statically imported (see the top of the file) rather than require()d here.
+  // These used to be lazy require()s, which webpack happened to bundle; Vite leaves
+  // a bare require() alone, so it would have survived into main.js and thrown at
+  // startup in a packaged build, where there is no node_modules to resolve it from.
+  remoteMain.enable(mainWindow.webContents);
+  remoteMain.initialize();
 
-  mainWindow.loadURL(winURL);
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
+  } else {
+    mainWindow.loadFile(Path.join(__dirname, "index.html"));
+  }
   mainWindow.setBounds(mainWindowState); // see https://github.com/mawie81/electron-window-state/issues/80
 
   mainWindow.on("closed", () => {

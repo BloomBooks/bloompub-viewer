@@ -49,20 +49,28 @@ const isRuntimeOnlyExternal = (id: string): boolean =>
 // "dist/electron/**/*". Splitting the output would break all three.
 
 /**
- * Clear dist/electron once, before the first of the three builds writes to it.
+ * Clear dist/electron exactly ONCE per electron-vite process, before the first of
+ * the three builds writes into it.
  *
- * `apply: "build"` matters. main, preload and renderer are separate rollup builds
- * sharing this folder; in watch mode (`dev -w`) editing a main-process file re-fires
- * this buildStart, and wiping the folder would take preload.js with it -- which the
- * preload watcher does not re-emit. Electron then restarts with a preload that no
- * longer exists, so contextBridge never runs and window.bloomPubViewMainApi is
- * undefined. A plain `build` is strictly sequential, so cleaning once there is safe.
+ * The once-guard is the whole point. main, preload and renderer are separate rollup
+ * builds sharing this one folder, so under `dev -w` a main-process edit re-fires
+ * buildStart -- and wiping the folder then takes preload.js with it, which the
+ * preload watcher does not re-emit. Electron restarts with a preload that no longer
+ * exists, contextBridge never runs, and the renderer dies on
+ * window.bloomPubViewMainApi.
+ *
+ * Note `apply: "build"` does NOT work here, which is counter-intuitive: electron-vite
+ * compiles main and preload through Vite's build() API even during `dev`, so a
+ * build-only plugin is still active in dev. Measured: with `apply: "build"`, editing
+ * a main file under `dev -w` deleted preload.js; with this guard it survives.
  */
+let outDirCleaned = false;
 function cleanOutDir(): Plugin {
   return {
     name: "bloompub-clean-out-dir",
-    apply: "build",
     buildStart() {
+      if (outDirCleaned) return;
+      outDirCleaned = true;
       fs.rmSync(outDir, { recursive: true, force: true });
     },
   };

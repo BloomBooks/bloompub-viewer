@@ -24,6 +24,15 @@ const nodeBuiltins = new Set([
 const isRuntimeOnlyExternal = (id: string): boolean =>
   id === "electron" || id.startsWith("electron/") || nodeBuiltins.has(id);
 
+// Why the "dev" script pins `--entry dist/electron/main.js`:
+// electron-vite otherwise launches `electron .`, which makes Electron read the root
+// package.json and set app.getAppPath() to the project root. bpubProtocolHandler
+// resolves bloom-player and the Andika fonts relative to getAppPath() assuming it is
+// dist/electron -- which is what it was when the old dev-runner spawned
+// `electron dist/electron/main.js`. Without the pin, every player file and font 404s
+// in dev, and Electron also picks up the app name from package.json, moving dev's
+// userData onto the *installed* app's electron-store (clobbering real recent books).
+//
 // Everything -- main, preload, renderer, bloom-player and the fonts -- lands in a
 // single flat dist/electron, rather than electron-vite's default out/{main,preload,
 // renderer}. That is not cosmetic: at runtime bpubProtocolHandler resolves
@@ -31,10 +40,20 @@ const isRuntimeOnlyExternal = (id: string): boolean =>
 // loads ./index.html relative to itself, and electron-builder ships only
 // "dist/electron/**/*". Splitting the output would break all three.
 
-/** Clear dist/electron once, before the first of the three builds writes to it. */
+/**
+ * Clear dist/electron once, before the first of the three builds writes to it.
+ *
+ * `apply: "build"` matters. main, preload and renderer are separate rollup builds
+ * sharing this folder; in watch mode (`dev -w`) editing a main-process file re-fires
+ * this buildStart, and wiping the folder would take preload.js with it -- which the
+ * preload watcher does not re-emit. Electron then restarts with a preload that no
+ * longer exists, so contextBridge never runs and window.bloomPubViewMainApi is
+ * undefined. A plain `build` is strictly sequential, so cleaning once there is safe.
+ */
 function cleanOutDir(): Plugin {
   return {
     name: "bloompub-clean-out-dir",
+    apply: "build",
     buildStart() {
       fs.rmSync(outDir, { recursive: true, force: true });
     },

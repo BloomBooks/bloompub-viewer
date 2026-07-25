@@ -8,15 +8,23 @@ import type { Plugin } from "vite";
 const root = __dirname;
 const outDir = resolve(root, "dist/electron");
 
-// Bundle every dependency into main.js / preload.js, leaving only electron itself
-// and Node's own builtins to be required at runtime. electron-vite would otherwise
-// externalize everything in "dependencies", which webpack did not -- and it would
-// break the packaged app, because electron-builder.json5 ships only
-// "dist/electron/**/*" with no node_modules for those requires to resolve against.
-// A predicate, not an array, on purpose: Vite MERGES array config by concatenation,
-// so an array here would be appended to electron-vite's own external list (which
-// contains every "dependencies" entry) and nothing would ever get bundled. A
-// function replaces that list outright.
+// main.js and preload.js must bundle every library, leaving only electron itself and
+// Node's own builtins to be required at runtime: electron-builder.json5 ships just
+// "dist/electron/**/*", so there is no node_modules for a stray require() to resolve
+// against and the packaged app would die on startup.
+//
+// Two separate things achieve that, and BOTH are load-bearing:
+//
+//  1. package.json declares no "dependencies" at all -- every library is a
+//     devDependency. electron-vite externalizes whatever it finds in "dependencies",
+//     so that list being empty is what actually allows bundling. Moving a package
+//     back into "dependencies" would silently drop it out of the bundle again.
+//
+//  2. The predicate below keeps electron and the node builtins external. It must be
+//     a function, not an array: Vite MERGES array config by concatenation, so an
+//     array would be appended to electron-vite's own external list rather than
+//     replacing it, and nothing would bundle. (Setting ssr.noExternal instead does
+//     not work -- that was tried.)
 const nodeBuiltins = new Set([
   ...builtinModules,
   ...builtinModules.map((m) => `node:${m}`),
@@ -110,10 +118,6 @@ export default defineConfig(({ command }) => {
 
   return {
   main: {
-    // main and preload are built as Vite "ssr" environments, where dependency
-    // externalization is decided by ssr.noExternal -- rollupOptions.external alone
-    // does not bundle them. Both are needed: noExternal to pull deps in, and the
-    // rollup external list to keep electron and node builtins out.
     // The copy runs here, not on the renderer, so dist/electron is complete in
     // `dev` too -- the renderer is served rather than bundled in dev, so a
     // renderer-attached closeBundle would never fire.

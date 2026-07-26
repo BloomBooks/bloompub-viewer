@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint \"./**/!(*.d).ts{,x}\"",
     "typecheck": "tsc --noEmit",
-    "dev": "electron-vite dev -w --entry dist/electron/main.js",
+    "dev": "electron-vite dev -w --entry dist/electron/main.js --",
     "build": "electron-vite build",
     "build:ci": "electron-vite build && electron-builder --publish never"
   },

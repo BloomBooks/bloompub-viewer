@@ -1,3 +1,8 @@
+# Stop ESLint walking up past the repo. Without this it also picks up any
+# .eslintrc it finds in a parent directory -- which happens whenever the repo is
+# checked out inside another one (e.g. a git worktree under the main checkout) and
+# fails with "couldn't determine the plugin 'react' uniquely".
+root: true
 env:
   browser: true
   es6: true

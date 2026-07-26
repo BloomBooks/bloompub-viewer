@@ -20,6 +20,16 @@ allowBuilds:
   # Electron downloads the runtime binary used by local development and packaging.
   electron@30.5.1: true
 
+# The native pnpm allowlist of dependencies permitted to run install scripts.
+# pnpm 10 refuses to run them by default and fails the install (ERR_PNPM_IGNORED_BUILDS)
+# until each is decided explicitly; this is the key that actually satisfies it
+# (verified: without it `pnpm install` exits 1, with it the postinstalls run).
+# Both entries genuinely need their script: electron downloads its runtime binary,
+# and esbuild -- pulled in by vite and electron-vite -- locates its native binary.
+onlyBuiltDependencies:
+  - electron
+  - esbuild
+
 # Acknowledge dependencies whose install scripts we intentionally do NOT run.
 # (The allowBuilds list above is not honored by pnpm 10.33 for suppressing the
 # ERR_PNPM_IGNORED_BUILDS error; this native pnpm key is.)

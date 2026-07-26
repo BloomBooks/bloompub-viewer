@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- Renderer has no node integration (BL-8994); keep scripts to 'self'.
+         electron.vite.config.ts relaxes script-src-elem for the dev server only. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src https: 'self'; style-src 'self' 'unsafe-inline' https: ; script-src-elem 'self'; object-src 'none'; img-src 'self' data:"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>

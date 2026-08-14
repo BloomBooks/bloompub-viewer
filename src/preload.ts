@@ -79,8 +79,15 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   },
 
   showOpenDialog: (options, func) => {
+    // Pass our window as the dialog's parent. Without it the dialog has no owner, so
+    // Windows gives it the executable's icon (the Electron atom, in a dev run) instead of
+    // ours and puts it in the taskbar as a separate app. Parenting it also makes it
+    // properly modal to the window rather than a free-floating one.
     remote.dialog
-      .showOpenDialog(options as Electron.OpenDialogOptions)
+      .showOpenDialog(
+        remote.getCurrentWindow(),
+        options as Electron.OpenDialogOptions
+      )
       .then((result) => {
         if (!result.canceled && result.filePaths.length > 0) {
           func(result.filePaths[0]);

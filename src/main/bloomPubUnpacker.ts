@@ -45,6 +45,11 @@ export async function unpackBloomPub(
   const existingPath = unpackedBloomPubs.get(bloomPubPath);
   if (existingPath && fs.existsSync(existingPath)) {
     console.log(`Book already unpacked at ${existingPath}`);
+    // Reopening still counts as opening: record it here too, or the recent-books list
+    // never reorders for a book already unpacked this session. That would leave the
+    // start screen showing a stale order, the OS jump list missing the reopen, and
+    // get-open-dialog-default-folder pointing at the wrong book's folder.
+    if (addToRecentBooks) addRecentBook(bloomPubPath, existingPath);
     return prepareResponse(existingPath, bloomPubPath);
   }
 

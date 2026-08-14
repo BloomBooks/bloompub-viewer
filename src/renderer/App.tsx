@@ -129,7 +129,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
       if (files && files.length > 0) {
         const file = files[0];
         if (hasValidExtension(file.name)) {
-          setNewPrimaryBloomPub(file.path);
+          setNewPrimaryBloomPub(window.bloomPubViewMainApi.getPathForFile(file));
         }
       }
     };

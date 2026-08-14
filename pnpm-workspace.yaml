@@ -17,8 +17,10 @@ allowBuilds:
   core-js@2.6.12: false
   # highlight.js uses postinstall for messaging, not functionality.
   highlight.js@9.18.5: false
-  # Electron downloads the runtime binary used by local development and packaging.
-  electron@30.5.1: true
+  # NOTE: electron used to need an entry here for the postinstall that fetched its
+  # runtime binary. Electron 42 dropped that script; the binary is now downloaded
+  # lazily the first time something requires("electron") (or eagerly via
+  # `pnpm exec install-electron`), so no allowBuilds entry is needed.
 
 # Acknowledge dependencies whose install scripts we intentionally do NOT run.
 # (The allowBuilds list above is not honored by pnpm 10.33 for suppressing the

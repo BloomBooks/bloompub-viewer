@@ -45,6 +45,11 @@ export async function unpackBloomPub(
   const existingPath = unpackedBloomPubs.get(bloomPubPath);
   if (existingPath && fs.existsSync(existingPath)) {
     console.log(`Book already unpacked at ${existingPath}`);
+    // Reopening still counts as opening: record it here too, or the recent-books list
+    // never reorders for a book already unpacked this session. That would leave the
+    // start screen showing a stale order, the OS jump list missing the reopen, and
+    // get-open-dialog-default-folder pointing at the wrong book's folder.
+    if (addToRecentBooks) addRecentBook(bloomPubPath, existingPath);
     return prepareResponse(existingPath, bloomPubPath);
   }
 
@@ -189,4 +194,20 @@ ipcMain.on("get-recent-books", (event) => {
   event.returnValue = store
     .get("recentBooks")
     .filter((b) => fs.existsSync(b.path));
+});
+
+// Electron 43 starts the Open dialog in the user's Downloads folder unless we give it a
+// defaultPath; it used to reopen wherever they last found a book. So point it at the folder
+// holding the most recently opened book, which restores that "where I was last" behavior.
+// Note this genuinely follows the user around rather than pinning one library folder: open a
+// book from Downloads and Downloads becomes the default next time, which is what "where they
+// last found a book" means. Undefined when there is no such book, leaving Electron's default.
+// Only absolute paths are any use to the dialog. Books opened by file association, by the
+// dialog itself, or by drag-and-drop all give us absolute paths, but launching from the dev
+// script with a relative argument does not, and a relative defaultPath is meaningless.
+ipcMain.on("get-open-dialog-default-folder", (event) => {
+  const mostRecent = store
+    .get("recentBooks")
+    .find((b) => fs.existsSync(b.path) && Path.isAbsolute(b.path));
+  event.returnValue = mostRecent ? Path.dirname(mostRecent.path) : undefined;
 });

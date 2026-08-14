@@ -89,6 +89,10 @@ function createWindow() {
       nodeIntegration: false,
       webSecurity: true,
       contextIsolation: true,
+      // This has been Electron's default since v20, but pin it: the preload is written
+      // against a sandboxed environment (it cannot require Node builtins), so we do not
+      // want a future change of default to silently move that ground.
+      sandbox: true,
       preload: preloadPath,
     },
     //windows

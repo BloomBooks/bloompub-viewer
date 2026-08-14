@@ -192,10 +192,11 @@ ipcMain.on("get-recent-books", (event) => {
 });
 
 // Electron 43 starts the Open dialog in the user's Downloads folder unless we give it a
-// defaultPath; it used to reopen wherever they last found a book. For someone who keeps
-// their books in a folder of their own, that means navigating back every time, so point
-// it at the folder holding the most recently opened book. Undefined when there isn't one,
-// which leaves Electron's own default in place.
+// defaultPath; it used to reopen wherever they last found a book. So point it at the folder
+// holding the most recently opened book, which restores that "where I was last" behavior.
+// Note this genuinely follows the user around rather than pinning one library folder: open a
+// book from Downloads and Downloads becomes the default next time, which is what "where they
+// last found a book" means. Undefined when there is no such book, leaving Electron's default.
 // Only absolute paths are any use to the dialog. Books opened by file association, by the
 // dialog itself, or by drag-and-drop all give us absolute paths, but launching from the dev
 // script with a relative argument does not, and a relative defaultPath is meaningless.

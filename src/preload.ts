@@ -1,7 +1,9 @@
-// NOTE: this script runs sandboxed, so Node's built-in modules are NOT available here
-// (only a small subset: electron, events, timers, url). Importing something like "path"
-// throws "module not found" and takes the whole preload down with it, which leaves the
-// renderer with no bloomPubViewMainApi at all. Anything needing Node belongs in main.
+// NOTE: this script runs sandboxed (see sandbox: true in createWindow), so Node's built-in
+// modules are NOT available here — only a small subset: electron, events, timers, url.
+// Importing something like "path" throws "module not found" and takes the whole preload down
+// with it, which leaves the renderer with no bloomPubViewMainApi at all and no obvious clue
+// why. Anything needing Node belongs in the main process instead. (The require of
+// package.json below is fine: webpack inlines the JSON at build time.)
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import * as remote from "@electron/remote";
 

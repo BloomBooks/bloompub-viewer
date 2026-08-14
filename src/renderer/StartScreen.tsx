@@ -228,7 +228,7 @@ export const StartScreen: React.FunctionComponent<{
   );
 };
 export function showOpenFile() {
-  const options /*:Electron.OpenDialogOptions*/ = {
+  const options: any /*:Electron.OpenDialogOptions*/ = {
     title: "Open BloomPUB File",
     properties: ["openFile"],
     filters: [
@@ -238,6 +238,13 @@ export function showOpenFile() {
       },
     ],
   };
+
+  // Without this the dialog starts in Downloads on Electron 43 rather than where the
+  // user last found a book. See get-open-dialog-default-folder in the main process.
+  const defaultFolder = window.bloomPubViewMainApi.getOpenDialogDefaultFolder();
+  if (defaultFolder) {
+    options.defaultPath = defaultFolder;
+  }
   window.bloomPubViewMainApi.showOpenDialog(options, (filepath: string) => {
     if (filepath) {
       setNewPrimaryBloomPub(filepath);

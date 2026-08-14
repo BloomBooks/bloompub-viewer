@@ -83,6 +83,7 @@ interface Window {
     openDownloadPage: (downloadLink: string) => void;
     openSIL: () => void;
     getPathForFile: (file: File) => string;
+    getOpenDialogDefaultFolder: () => string | undefined;
     addRecentDocument: (bloomPubPath: string) => void;
     quit: () => void;
     setApplicationMenu: (template: Array<any>) => void;

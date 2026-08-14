@@ -1,3 +1,7 @@
+// NOTE: this script runs sandboxed, so Node's built-in modules are NOT available here
+// (only a small subset: electron, events, timers, url). Importing something like "path"
+// throws "module not found" and takes the whole preload down with it, which leaves the
+// renderer with no bloomPubViewMainApi at all. Anything needing Node belongs in main.
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import * as remote from "@electron/remote";
 
@@ -51,6 +55,11 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   // webUtils.getPathForFile() is the replacement, and it is only available here in
   // the preload, so the renderer has to ask us.
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
+
+  // Where the Open dialog should start. Main works this out, because it owns the
+  // recent-books list and, unlike this sandboxed script, it can use path.
+  getOpenDialogDefaultFolder: () =>
+    ipcRenderer.sendSync("get-open-dialog-default-folder"),
 
   addRecentDocument: (bloomPubPath: string) => {
     remote.app.addRecentDocument(bloomPubPath);

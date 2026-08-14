@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 import * as remote from "@electron/remote";
 
 // Expose protected methods that allow the renderer process to use
@@ -46,6 +46,11 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
       remote.shell.openExternal(downloadLink);
     }
   },
+
+  // Electron 32 removed the File.path property that drag-and-drop used to rely on.
+  // webUtils.getPathForFile() is the replacement, and it is only available here in
+  // the preload, so the renderer has to ask us.
+  getPathForFile: (file: File) => webUtils.getPathForFile(file),
 
   addRecentDocument: (bloomPubPath: string) => {
     remote.app.addRecentDocument(bloomPubPath);

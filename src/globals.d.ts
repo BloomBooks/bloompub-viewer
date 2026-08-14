@@ -2,6 +2,12 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
 
+// Electron 43's typings reference the WebCodecs `VideoFrame` type, which is not in
+// TypeScript 4.9's lib.dom.d.ts (it arrived in TS 5.x). We never touch WebCodecs, so
+// an empty declaration is enough to let electron.d.ts compile. Remove this once the
+// TypeScript upgrade lands.
+declare interface VideoFrame {}
+
 declare namespace NodeJS {
   interface Global {
     __static: string;
@@ -76,6 +82,7 @@ interface Window {
     openLibrary: () => void;
     openDownloadPage: (downloadLink: string) => void;
     openSIL: () => void;
+    getPathForFile: (file: File) => string;
     addRecentDocument: (bloomPubPath: string) => void;
     quit: () => void;
     setApplicationMenu: (template: Array<any>) => void;

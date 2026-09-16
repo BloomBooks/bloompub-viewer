@@ -56,17 +56,11 @@ jobs:
           echo "Both ABeeZee faces are present."
 
       # The two checks above only prove webpack staged the fonts; electron-builder
-      # could still leave them out of what actually ships. So look inside the packed
-      # app itself. The asar header lists every file name in plain text, so a grep
-      # answers this without needing an extra tool. (Raised by Devin on PR #63.)
+      # could still leave them out of what actually ships. This one looks inside the
+      # packed app's own file table. (Raised by Devin on PR #63.)
       - name: Verify the fonts reached the packaged app
         shell: bash
-        run: |
-          asar=$(ls output/*-unpacked/resources/app.asar)
-          for face in Andika-Regular Andika-Bold Andika-Italic Andika-BoldItalic ABeeZee-Regular ABeeZee-Italic; do
-            grep -qa "$face.woff2" "$asar" || { echo "::error::$face.woff2 is missing from $asar"; exit 1; }
-          done
-          echo "All six faces are inside $asar."
+        run: node .github/scripts/verify-packaged-fonts.js "$(ls output/*-unpacked/resources/app.asar)"
 
       - name: Sign installer
         if: github.event_name != 'pull_request'
@@ -144,17 +138,11 @@ jobs:
           echo "Both ABeeZee faces are present."
 
       # The two checks above only prove webpack staged the fonts; electron-builder
-      # could still leave them out of what actually ships. So look inside the packed
-      # app itself. The asar header lists every file name in plain text, so a grep
-      # answers this without needing an extra tool. (Raised by Devin on PR #63.)
+      # could still leave them out of what actually ships. This one looks inside the
+      # packed app's own file table. (Raised by Devin on PR #63.)
       - name: Verify the fonts reached the packaged app
         shell: bash
-        run: |
-          asar=$(ls output/*-unpacked/resources/app.asar)
-          for face in Andika-Regular Andika-Bold Andika-Italic Andika-BoldItalic ABeeZee-Regular ABeeZee-Italic; do
-            grep -qa "$face.woff2" "$asar" || { echo "::error::$face.woff2 is missing from $asar"; exit 1; }
-          done
-          echo "All six faces are inside $asar."
+        run: node .github/scripts/verify-packaged-fonts.js "$(ls output/*-unpacked/resources/app.asar)"
 
       - name: Create Release
         if: github.event_name != 'pull_request'

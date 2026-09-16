@@ -2,7 +2,63 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src https: 'self'; style-src 'self' 'unsafe-inline' https: ; script-src-elem 'self'; object-src 'none'; img-src 'self' data:">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src https: 'self'; style-src 'self' 'unsafe-inline' https: ; script-src-elem 'self'; object-src 'none'; img-src 'self' data:"
+    />
+
+    <!--
+      Register the Andika and ABeeZee fonts we ship in static/fonts so that our own UI
+      (see the Recent Books titles in StartScreen.tsx) can use them without relying on them
+      being installed on the machine.  These are the same files the bpub: protocol
+      handler serves to bloom-player for the book itself.  The relative URL works both
+      in development, where webpack-dev-server serves the repo root as its contentBase,
+      and in a packaged build, where index.html and static/ both sit in dist/electron.
+    -->
+    <style>
+      @font-face {
+        font-family: "Andika";
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+        src: url("static/fonts/Andika-Regular.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Andika";
+        font-weight: bold;
+        font-style: normal;
+        font-display: swap;
+        src: url("static/fonts/Andika-Bold.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Andika";
+        font-weight: normal;
+        font-style: italic;
+        font-display: swap;
+        src: url("static/fonts/Andika-Italic.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Andika";
+        font-weight: bold;
+        font-style: italic;
+        font-display: swap;
+        src: url("static/fonts/Andika-BoldItalic.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "ABeeZee";
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+        src: url("static/fonts/ABeeZee-Regular.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "ABeeZee";
+        font-weight: normal;
+        font-style: italic;
+        font-display: swap;
+        src: url("static/fonts/ABeeZee-Italic.woff2") format("woff2");
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

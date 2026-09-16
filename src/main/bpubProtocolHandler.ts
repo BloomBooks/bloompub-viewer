@@ -187,6 +187,14 @@ function getPathToFont(fontRequested: string) {
       fontFileName = "Andika-BoldItalic.woff2";
       break;
   }
+  // Only ever serve a file we actually ship.  The name arrives percent-decoded, so
+  // without this a request for "host/fonts/..%2F..%2Fsomething" would walk out of
+  // static/fonts and serve an arbitrary local file.  Anything not on the list we
+  // would not have anyway, so pinning it to a bare file name costs no functionality
+  // and the caller still reports the miss. (Raised by Devin on PR #63.)
+  if (!shippedFontFiles.includes(fontFileName)) {
+    fontFileName = Path.basename(fontFileName);
+  }
   return Path.join(getFontsFolder(), fontFileName);
 }
 

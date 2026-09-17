@@ -28,3 +28,22 @@ Team-wide workflow skills that are not specific to this repo (the preflight → 
 peer-review pipeline, Devin review handling, YouTrack operations) live in
 https://github.com/BloomBooks/bloom-team-skills — install per its README (clone + symlink into
 `~/.claude/skills`).
+
+# Project layout
+
+- `src/main/` is the Electron main process; `src/renderer/` is the React UI.
+- `static/` reaches a shipped build by an indirect route worth knowing about:
+  `.electron-react/webpack.renderer.config.js` copies it to `dist/electron/static/`, but **only
+  in production builds**, and `electron-builder.json5` then packs `dist/electron/**/*`. So main
+  process code must find those files at `__dirname/static/...` when packaged, and in the source
+  tree when running from `pnpm dev`. `getFontsFolder()` in `src/main/bpubProtocolHandler.ts` is
+  the worked example — getting this wrong is what BL-16708 was.
+
+# Commands
+
+- `pnpm dev [book.bloompub]` — run from source with hot reload.
+- `pnpm lint` — eslint (prettier runs through it).
+- `pnpm build` — production webpack into `dist/electron/`.
+- `pnpm build:ci` — the above plus `electron-builder`; installers land in `output/`.
+
+There is no automated test suite in this repo; verification is by building and running the app.

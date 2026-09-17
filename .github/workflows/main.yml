@@ -33,6 +33,35 @@ jobs:
           in_github_action: "true"
         run: vp run build:ci
 
+      # The Andika and ABeeZee fonts we ship live in static/, and only reach the package
+      # because webpack.renderer.config.js copies static/ into dist/electron/ in production
+      # builds.  Nothing else fails if that copy stops happening, and the app would still
+      # look fine to anyone online or with Andika and ABeeZee installed, so assert it here.
+      # (BL-16708)
+      - name: Verify the Andika fonts were packaged
+        shell: bash
+        run: |
+          for face in Regular Bold Italic BoldItalic; do
+            file="dist/electron/static/fonts/Andika-$face.woff2"
+            test -s "$file" || { echo "::error::Missing $file"; exit 1; }
+          done
+          echo "All four Andika faces are present."
+      - name: Verify the ABeeZee fonts were packaged
+        shell: bash
+        run: |
+          for face in Regular Italic; do
+            file="dist/electron/static/fonts/ABeeZee-$face.woff2"
+            test -s "$file" || { echo "::error::Missing $file"; exit 1; }
+          done
+          echo "Both ABeeZee faces are present."
+
+      # The two checks above only prove webpack staged the fonts; electron-builder
+      # could still leave them out of what actually ships. This one looks inside the
+      # packed app's own file table. (Raised by Devin on PR #63.)
+      - name: Verify the fonts reached the packaged app
+        shell: bash
+        run: node .github/scripts/verify-packaged-fonts.js "$(ls output/*-unpacked/resources/app.asar)"
+
       - name: Sign installer
         if: github.event_name != 'pull_request'
         uses: sillsdev/codesign/trusted-signing-action@v3
@@ -85,6 +114,35 @@ jobs:
         env:
           in_github_action: "true"
         run: vp run build:ci
+
+      # The Andika and ABeeZee fonts we ship live in static/, and only reach the package
+      # because webpack.renderer.config.js copies static/ into dist/electron/ in production
+      # builds.  Nothing else fails if that copy stops happening, and the app would still
+      # look fine to anyone online or with Andika and ABeeZee installed, so assert it here.
+      # (BL-16708)
+      - name: Verify the Andika fonts were packaged
+        shell: bash
+        run: |
+          for face in Regular Bold Italic BoldItalic; do
+            file="dist/electron/static/fonts/Andika-$face.woff2"
+            test -s "$file" || { echo "::error::Missing $file"; exit 1; }
+          done
+          echo "All four Andika faces are present."
+      - name: Verify the ABeeZee fonts were packaged
+        shell: bash
+        run: |
+          for face in Regular Italic; do
+            file="dist/electron/static/fonts/ABeeZee-$face.woff2"
+            test -s "$file" || { echo "::error::Missing $file"; exit 1; }
+          done
+          echo "Both ABeeZee faces are present."
+
+      # The two checks above only prove webpack staged the fonts; electron-builder
+      # could still leave them out of what actually ships. This one looks inside the
+      # packed app's own file table. (Raised by Devin on PR #63.)
+      - name: Verify the fonts reached the packaged app
+        shell: bash
+        run: node .github/scripts/verify-packaged-fonts.js "$(ls output/*-unpacked/resources/app.asar)"
 
       - name: Create Release
         if: github.event_name != 'pull_request'

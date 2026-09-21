@@ -18,6 +18,18 @@ window.bloomPubViewMainApi.receive("open-file", (filePath: string) => {
 });
 
 function updateMainMenu() {
+  // This renderer deliberately has no node integration (BL-8994), so `process` does
+  // not exist here. webpack 4 used to shim it for browser targets, where
+  // process.platform was the literal string "browser" -- meaning the macOS branches
+  // below never ran and macOS quietly got the Windows/Linux menu. Vite does not shim
+  // it, which turned that silent bug into "process is not defined" on load. Ask the
+  // browser, which is the right question for a renderer.
+  //
+  // Declared in here rather than at module scope on purpose: updateMainMenu() is
+  // called at the top of this file, above where a module-level `const` would be
+  // initialized, so hoisting rules would put it in the temporal dead zone.
+  const isMac = navigator.platform.startsWith("Mac");
+
   const macMenu = {
     label: `BloomPUB Viewer`,
     submenu: [
@@ -97,13 +109,13 @@ function updateMainMenu() {
     ],
   };
 
-  if (fileMenu && process.platform !== "darwin") {
+  if (fileMenu && !isMac) {
     //fileMenu.submenu.push({ type: "separator" });
     fileMenu.submenu.push({ role: "quit" });
   }
 
   const template: Electron.MenuItemConstructorOptions[] = [];
-  if (process.platform === "darwin") {
+  if (isMac) {
     template.push(macMenu);
   }
 

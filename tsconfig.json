@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
-    // electron 30 bundles Chromium 124 and Node 20, so the runtime could happily
-    // take es2022; the ceiling here is webpack, not electron. ts-loader is the only
-    // thing transforming our source (no babel-loader is wired into webpack), so this
-    // option alone decides the emitted syntax -- and webpack 4's parser cannot read
-    // optional chaining (`?.`, ES2020), which we use in linkedBookLoader.ts and
-    // App.tsx. At es2015 TypeScript happened to down-level it for us; anything from
-    // es2020 up emits it natively and webpack 4 fails with "Module parse failed:
-    // Unexpected token". es2019 is therefore the highest we can go until webpack is
-    // upgraded, and it still buys native async/await instead of the generator-based
-    // __awaiter/__generator helpers es2015 was emitting.
-    "target": "es2019",
+    // electron 30 bundles Chromium 124 and Node 20, both of which support ES2022.
+    // This was previously capped at es2019 because webpack 4's parser could not read
+    // optional chaining; Vite has no such limit, so the cap is gone. Note that Vite,
+    // not tsc, does the actual transforming now -- the per-process `target` values in
+    // electron.vite.config.ts are what govern emitted syntax. This setting is what
+    // typechecking is done against.
+    "target": "es2022",
     "module": "commonjs",
     // TypeScript 7 removed "node10"/"classic" resolution, so "bundler" is the only
     // option left for a bundled app like this one. It is also the TS 6+ default;
@@ -24,10 +20,6 @@
       /*"@emotion/react",
       "@emotion/react/types/css-prop"*/
     ],
-    // Deliberately ahead of "target": lib only declares which built-in methods
-    // exist at runtime, it does not enable any syntax, and electron 30's Chromium
-    // 124 / Node 20 really do have the es2022 built-ins. Only the emitted *syntax*
-    // is capped by webpack (see "target" above), so don't "tidy" these to match.
     "lib": [
       "dom",
       "dom.iterable",
@@ -37,20 +29,9 @@
     // here rather than inherited from whichever compiler version happens to run.
     "strict": true,
     "noImplicitReturns": true,
-    // Our webpack loaders transpile file-by-file (ts-loader transpileOnly + babel),
-    // so reject constructs that need whole-program knowledge to emit correctly.
+    // Vite transforms each file on its own, so reject constructs that need
+    // whole-program knowledge to emit correctly.
     "isolatedModules": true,
-    // react-toastify 9.0.3's "exports" map has no "types" condition and its declarations
-    // sit at dist/index.d.ts rather than beside dist/react-toastify.js, so exports-based
-    // resolution cannot find them. (It used to work only because the pre-TS-6 default
-    // "node10" resolution read the legacy "typings" field instead of "exports".)
-    // 9.1.3+ adds the "types" condition, but also switches "module" to an .mjs file that
-    // webpack 4 cannot interop with CommonJS React -- so point at the declarations here
-    // instead. Drop this once webpack is upgraded and react-toastify can move with it.
-    // Affects type resolution only; webpack resolves the runtime entry via "module".
-    "paths": {
-      "react-toastify": ["./node_modules/react-toastify/dist/index.d.ts"]
-    },
     "resolveJsonModule": true,
     "esModuleInterop": true,
     // Don't type-check dependency .d.ts files. Forced by a conflict we don't own:

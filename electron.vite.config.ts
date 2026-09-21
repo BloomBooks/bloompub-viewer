@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { extname, resolve } from "node:path";
 import fs from "node:fs";
 import { builtinModules } from "node:module";
 import { defineConfig } from "electron-vite";
@@ -119,6 +119,49 @@ function relaxCspForDevServer(): Plugin {
   };
 }
 
+/**
+ * index.html refers to the shipped fonts as static/fonts/*.woff2. That URL is
+ * right for the packaged app, where index.html and static/ sit side by side in
+ * dist/electron, but not for the dev server, whose root is src/renderer -- there
+ * it would 404 and the start screen would silently fall back to a system font.
+ * Serve the repo-root static/ folder at /static/ in dev so dev shows the fonts
+ * it ships with. Dev only; the built HTML is left exactly as authored.
+ */
+function serveStaticInDev(): Plugin {
+  const staticDir = resolve(root, "static");
+  const contentTypes: Record<string, string> = {
+    ".woff2": "font/woff2",
+    ".woff": "font/woff",
+    ".ttf": "font/ttf",
+    ".css": "text/css",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".txt": "text/plain",
+  };
+  return {
+    name: "bloompub-serve-static-in-dev",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use("/static", (req, res, next) => {
+        const rel = decodeURIComponent((req.url ?? "/").split("?")[0]);
+        const file = resolve(staticDir, "." + rel);
+        if (
+          !file.startsWith(staticDir) ||
+          !fs.existsSync(file) ||
+          fs.statSync(file).isDirectory()
+        ) {
+          return next();
+        }
+        res.setHeader(
+          "Content-Type",
+          contentTypes[extname(file).toLowerCase()] ?? "application/octet-stream"
+        );
+        fs.createReadStream(file).pipe(res);
+      });
+    },
+  };
+}
+
 export default defineConfig(({ command }) => {
   // `electron-vite dev` still builds main and preload to disk, so key off the
   // command rather than NODE_ENV: minify what we ship, keep dev output readable.
@@ -134,7 +177,7 @@ export default defineConfig(({ command }) => {
       outDir,
       emptyOutDir: false, // cleanOutDir handles it; all three share this folder
       minify,
-      target: "node20", // electron 30 bundles Node 20
+      target: "node20", // a floor; electron 43 bundles a newer Node
       lib: {
         entry: resolve(root, "src/main/index.ts"),
         formats: ["cjs"],
@@ -177,12 +220,13 @@ export default defineConfig(({ command }) => {
         babel: { plugins: ["@emotion/babel-plugin"] },
       }),
       relaxCspForDevServer(),
+      serveStaticInDev(),
     ],
     build: {
       outDir,
       emptyOutDir: false,
       minify,
-      target: "chrome124", // electron 30
+      target: "chrome124", // a floor; electron 43 bundles a newer Chromium
       // Matches the old url-loader limit, so the same assets stay inlined as
       // data URIs and the same ones stay separate files.
       assetsInlineLimit: 10000,

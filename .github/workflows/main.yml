@@ -15,12 +15,12 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Vite+ (Node + pnpm)
         # Reads the Node version from .node-version and the pnpm version from
         # the package.json "packageManager" field. Replaces Volta + pnpm/action-setup.
-        uses: voidzero-dev/setup-vp@v1
+        uses: voidzero-dev/setup-vp@9fd26ff49f9b5e6276c2b493da4454ad4527f7f4 # v1.20.0
         with:
           cache: true
           run-install: false
@@ -64,7 +64,7 @@ jobs:
 
       - name: Sign installer
         if: github.event_name != 'pull_request'
-        uses: sillsdev/codesign/trusted-signing-action@v3
+        uses: sillsdev/codesign/trusted-signing-action@0485c27c94116d62f80febc468cc1979ed7245de # v3.2.0
         with:
           credentials: ${{ secrets.TRUSTED_SIGNING_CREDENTIALS }}
           files-folder: output
@@ -74,7 +74,7 @@ jobs:
 
       - name: Create Release
         if: github.event_name != 'pull_request'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         # The signer changes the installer's name from BloomPUB-Viewer-Setup-<x.y.z>.exe to
         # BloomPub.Viewer Setup <x.y.z>.exe.  (Uploading changes spaces to periods.)  The
         # latter is what we want to release. (BL-15534)
@@ -95,12 +95,12 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Vite+ (Node + pnpm)
         # Reads the Node version from .node-version and the pnpm version from
         # the package.json "packageManager" field.
-        uses: voidzero-dev/setup-vp@v1
+        uses: voidzero-dev/setup-vp@9fd26ff49f9b5e6276c2b493da4454ad4527f7f4 # v1.20.0
         with:
           cache: true
           run-install: false
@@ -146,7 +146,7 @@ jobs:
 
       - name: Create Release
         if: github.event_name != 'pull_request'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
             output/*.deb

@@ -47,6 +47,11 @@ if (process.env.NODE_ENV !== "development") {
 // resources correctly when served.  Also register our internal scheme to bypass content
 // security policy for resources.  The scheme also needs to be registered as supporting
 // streaming.  Without this, the fetch can fail when the resource is larger than 32K.
+// (Both "standard" and "stream" matter for <video>: without "standard" some MP4s never
+// load at all, per https://github.com/electron/electron/issues/51442, and "stream" once
+// broke seeking in Electron 37 nightlies, fixed by electron/electron#47703 before 37.0.)
+// Being a custom scheme also makes us responsible for HTTP semantics such as Range
+// requests; see the top of bpubProtocolHandler.ts for why and for the alternatives.
 protocol.registerSchemesAsPrivileged([
   {
     scheme: "bpub",

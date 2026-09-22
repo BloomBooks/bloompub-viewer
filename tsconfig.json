@@ -1,7 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    // electron 30 bundles Chromium 124 and Node 20, both of which support ES2022.
+    // This was previously capped at es2019 because webpack 4's parser could not read
+    // optional chaining; Vite has no such limit, so the cap is gone. Note that Vite,
+    // not tsc, does the actual transforming now -- the per-process `target` values in
+    // electron.vite.config.ts are what govern emitted syntax. This setting is what
+    // typechecking is done against.
+    "target": "es2022",
     "module": "commonjs",
+    // TypeScript 7 removed "node10"/"classic" resolution, so "bundler" is the only
+    // option left for a bundled app like this one. It is also the TS 6+ default;
+    // we state it explicitly so the intent survives future default changes.
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "jsx": "react-jsx",
     "jsxImportSource": "@emotion/react",
@@ -12,22 +22,30 @@
     ],
     "lib": [
       "dom",
-      "es6",
-      "es2015",
-      "scripthost",
-      "es2017.object"
+      "dom.iterable",
+      "es2022"
     ],
-    "experimentalDecorators": true,
-    "alwaysStrict": true,
+    // TS 6 turns "strict" on by default; set it explicitly so the level is visible
+    // here rather than inherited from whichever compiler version happens to run.
+    "strict": true,
     "noImplicitReturns": true,
-    "strictNullChecks": true,
+    // Vite transforms each file on its own, so reject constructs that need
+    // whole-program knowledge to emit correctly.
+    "isolatedModules": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
-  },
-  "paths": {
-    "react": [
-      "./node_modules/@types/react"
-    ]
+    "esModuleInterop": true,
+    // Don't type-check dependency .d.ts files. Forced by a conflict we don't own:
+    // electron 30's bundled electron.d.ts declares process.noDeprecation as
+    // required while @types/node declares it optional, and both TS 6 and TS 7
+    // reject the contradiction.
+    //
+    // Decided (BL-16267, 2026-07) to keep this rather than chase the alternatives.
+    // Pinning @types/node lower is a dead end -- v20 cannot compile under TS 6 at
+    // all, and anything new enough carries the same optional-property change. The
+    // real fix is upgrading electron, which is its own job with its own testing.
+    // The cost we accept: a genuine incompatibility introduced by a future
+    // dependency bump won't be caught here. Revisit when electron is upgraded.
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",

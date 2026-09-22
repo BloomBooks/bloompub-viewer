@@ -6,20 +6,21 @@
 // package.json below is fine: webpack inlines the JSON at build time.)
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import * as remote from "@electron/remote";
+import packageJson from "../package.json";
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer, remote, and shell without exposing the entire objects
 contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
-  sendSync: (channel: string, data) => {
+  sendSync: (channel: string, data: unknown) => {
     // whitelist channels
-    let validChannels = ["get-file-that-launched-me", "toggleFullScreen"];
+    const validChannels = ["get-file-that-launched-me", "toggleFullScreen"];
     if (validChannels.includes(channel)) {
       return ipcRenderer.sendSync(channel, data);
     }
   },
-  send: (channel: string, data) => {
+  send: (channel: string, data: unknown) => {
     // whitelist channels
-    let validChannels = [
+    const validChannels = [
       "switch-primary-book",
       "switch-primary-book-failed",
       "exitFullScreen",
@@ -29,8 +30,8 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
       ipcRenderer.send(channel, data);
     }
   },
-  receive: (channel: string, func) => {
-    let validChannels = [
+  receive: (channel: string, func: (...args: unknown[]) => void) => {
+    const validChannels = [
       "book-ready-to-display",
       "uncaught-error",
       "switch-primary-book-failed",
@@ -71,23 +72,21 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
     remote.app.quit();
   },
 
-  setApplicationMenu: (template: Array<any>) => {
-    const menu = remote.Menu.buildFromTemplate(
-      template as Electron.MenuItemConstructorOptions[]
-    );
+  setApplicationMenu: (template: Electron.MenuItemConstructorOptions[]) => {
+    const menu = remote.Menu.buildFromTemplate(template);
     remote.Menu.setApplicationMenu(menu);
   },
 
-  showOpenDialog: (options, func) => {
+  showOpenDialog: (
+    options: Electron.OpenDialogOptions,
+    func: (filePath: string) => void
+  ) => {
     // Pass our window as the dialog's parent. Without it the dialog has no owner, so
     // Windows gives it the executable's icon (the Electron atom, in a dev run) instead of
     // ours and puts it in the taskbar as a separate app. Parenting it also makes it
     // properly modal to the window rather than a free-floating one.
     remote.dialog
-      .showOpenDialog(
-        remote.getCurrentWindow(),
-        options as Electron.OpenDialogOptions
-      )
+      .showOpenDialog(remote.getCurrentWindow(), options)
       .then((result) => {
         if (!result.canceled && result.filePaths.length > 0) {
           func(result.filePaths[0]);
@@ -98,7 +97,7 @@ contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   },
 
   getCurrentAppVersion: () => {
-    return require("../package.json").version;
+    return packageJson.version;
   },
 
   getRecentBooks: () => {

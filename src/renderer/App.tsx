@@ -4,7 +4,6 @@ import { Viewer } from "./Viewer";
 import { StartScreen } from "./StartScreen";
 import { toast, ToastContainer } from "react-toastify";
 import { injectStyle } from "react-toastify/dist/inject-style";
-import { Octokit } from "@octokit/rest";
 import { compareVersions } from "compare-versions";
 import { hasValidExtension } from "../common/extensions";
 
@@ -42,7 +41,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   }, []);
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "book-ready-to-display",
       (receivedBloomPubPath: string, indexHtmlPath: string) => {
         console.log(
@@ -53,14 +52,16 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
-    return () => unsubscribe?.();
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "uncaught-error",
-      (errorMessage) => {
-        toast.error(`${errorMessage}`, {
+      // Always text: both senders in index.ts stringify before sending, so toastId
+      // below reliably de-duplicates repeats and react-toastify never sees content
+      // it would silently refuse to render.
+      (errorMessage: string) => {
+        toast.error(errorMessage, {
           toastId: errorMessage,
           position: "top-center",
           autoClose: 3000,
@@ -73,11 +74,10 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setPrimaryHtmlPath("");
       }
     );
-    return () => unsubscribe?.();
   }, []); // Empty dependency array since this should only run once
 
   useEffect(() => {
-    const unsubscribe = window.bloomPubViewMainApi.receive(
+    window.bloomPubViewMainApi.receive(
       "switch-primary-book-failed",
       (receivedBloomPubPath: string, reason: string) => {
         toast.error(`Something went wrong opening that book: ${reason}`);
@@ -87,7 +87,6 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
         setRecentBooks(window.bloomPubViewMainApi.getRecentBooks());
       }
     );
-    return () => unsubscribe?.();
   }, []);
   useEffect(() => {
     const handleBackButton = (event: MessageEvent) => {
@@ -99,7 +98,7 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
           if (data.messageType === "backButtonClicked") {
             setNewPrimaryBloomPub("");
           }
-        } catch (err) {
+        } catch {
           //some other message, not the kind bloom-player sends
         }
       }
@@ -167,13 +166,26 @@ export const App: React.FunctionComponent<{ primaryBloomPubPath: string }> = (
   );
 };
 
+// The one GitHub call this app makes, done with plain fetch rather than
+// @octokit/rest. octokit drags in node-fetch, which assumes Node's builtins; this
+// renderer deliberately has no node integration (BL-8994), and once bundled it
+// crashed on load with "Cannot access 'URL' before initialization". webpack 4 hid
+// this by auto-polyfilling Node builtins for browser targets -- Vite does not, and
+// should not. fetch is allowed by the page's `default-src https:` CSP.
+const latestReleaseUrl =
+  "https://api.github.com/repos/bloombooks/bloompub-viewer/releases/latest";
+
 function checkForNewVersion() {
-  const octokit = new Octokit();
-  octokit.repos
-    .getLatestRelease({ owner: "bloombooks", repo: "bloompub-viewer" })
-    .then((data) => {
+  fetch(latestReleaseUrl, { headers: { Accept: "application/vnd.github+json" } })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`GitHub replied ${response.status}`);
+      }
+      return response.json() as Promise<{ tag_name: string; name: string }>;
+    })
+    .then((release) => {
       //strip out the leading "v" in "v1.2.3";
-      const publishedVersion = data.data.tag_name.replace(/v/gi, "");
+      const publishedVersion = release.tag_name.replace(/v/gi, "");
       if (
         compareVersions(
           publishedVersion,
@@ -181,7 +193,7 @@ function checkForNewVersion() {
         ) > 0
       ) {
         toast.success(
-          `Click to get new version of BloomPUB Viewer (${data.data.name})`,
+          `Click to get new version of BloomPUB Viewer (${release.name})`,
           {
             position: "bottom-right",
             autoClose: 15000,

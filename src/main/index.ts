@@ -6,6 +6,8 @@ import { bpubProtocolHandler } from "./bpubProtocolHandler";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 import { hasValidExtension } from "../common/extensions";
+import * as remoteMain from "@electron/remote/main";
+import packageJson from "../../package.json";
 
 //Create log file in temp directory
 const logPath = temp.path() + "-bloompubviewer.log";
@@ -20,15 +22,24 @@ let currentPrimaryBloomPubPath: string | undefined;
 let currentPrimaryBookUnpackedFolder: string | undefined;
 let launchFile: string | undefined;
 
-// Global exception handlers
+// Global exception handlers.
+//
+// Both of these must send *text* on the "uncaught-error" channel, for two reasons.
+// The renderer tags the error toast with this value so a repeated error shows only
+// once, and react-toastify ignores a tag that isn't a string or number -- so
+// sending an object silently defeated that de-duplication. Worse, react-toastify
+// drops a toast whose content isn't a string, number, function or element outright,
+// so a non-string here means the user gets torn back to the start screen with no
+// message at all. Node hands us the thrown value verbatim, so neither `error.message`
+// nor `reason` can be assumed to be a string however they are typed.
 process.on("uncaughtException", (error) => {
   if (mainWindow) {
-    mainWindow.webContents.send("uncaught-error", error.message);
+    mainWindow.webContents.send("uncaught-error", `${error?.message ?? error}`);
   }
 });
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason) => {
   if (mainWindow) {
-    mainWindow.webContents.send("uncaught-error", reason);
+    mainWindow.webContents.send("uncaught-error", `${reason}`);
   }
 });
 
@@ -37,9 +48,7 @@ process.on("unhandledRejection", (reason, promise) => {
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
 if (process.env.NODE_ENV !== "development") {
-  global.__static = require("path")
-    .join(__dirname, "/static")
-    .replace(/\\/g, "\\\\");
+  global.__static = Path.join(__dirname, "/static").replace(/\\/g, "\\\\");
 }
 
 // Register our internal scheme ("bpub") as standard.  A standard scheme adheres to what is
@@ -64,15 +73,14 @@ let mainWindow: BrowserWindow | null;
 // Automatically track and remove temp folders of unzipped files at exit.
 temp.track();
 
-const winURL =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:9080"
-    : `file://${__dirname}/index.html`;
+// electron-vite sets ELECTRON_RENDERER_URL while serving; when it is absent we are
+// running a built app and load the index.html that sits beside main.js.
+const devServerUrl = process.env.ELECTRON_RENDERER_URL;
 
-const preloadPath =
-  process.env.NODE_ENV === "development"
-    ? Path.join(app.getAppPath(), "preload.js")
-    : Path.join(__dirname, "preload.js");
+// main.js and preload.js are emitted side by side into dist/electron in both dev
+// and production, so one path works for both. (loadFile below is likewise used in
+// place of building a "file://" string, which mishandled paths containing spaces.)
+const preloadPath = Path.join(__dirname, "preload.js");
 
 function createWindow() {
   // Load the previous state with fallback to defaults
@@ -102,15 +110,29 @@ function createWindow() {
     },
     //windows
     icon: Path.join(__dirname, "../../assets/windows.ico"),
-    title: "BloomPUB Viewer " + require("../../package.json").version,
+    title: "BloomPUB Viewer " + packageJson.version,
   });
 
   mainWindowState.manage(mainWindow);
 
-  require("@electron/remote/main").enable(mainWindow.webContents);
-  require("@electron/remote/main").initialize();
+  // Statically imported (see the top of the file) rather than require()d here.
+  // These used to be lazy require()s, which webpack happened to bundle; Vite leaves
+  // a bare require() alone, so it would have survived into main.js and thrown at
+  // startup in a packaged build, where there is no node_modules to resolve it from.
+  remoteMain.enable(mainWindow.webContents);
+  // enable() is per-webContents, but initialize() is process-wide and throws
+  // "@electron/remote has already been initialized" if called twice. createWindow()
+  // runs again on macOS when the window is closed and the app is reactivated from
+  // the Dock, which would otherwise crash here and leave the window unable to reopen.
+  if (!remoteMain.isInitialized()) {
+    remoteMain.initialize();
+  }
 
-  mainWindow.loadURL(winURL);
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
+  } else {
+    mainWindow.loadFile(Path.join(__dirname, "index.html"));
+  }
   mainWindow.setBounds(mainWindowState); // see https://github.com/mawie81/electron-window-state/issues/80
 
   mainWindow.on("closed", () => {
@@ -165,7 +187,7 @@ ipcMain.on("toggleFullScreen", (event) => {
   mainWindow!.setFullScreen(makeFullScreen);
   event.returnValue = makeFullScreen;
 });
-ipcMain.on("toggleDevTools", (event) => {
+ipcMain.on("toggleDevTools", () => {
   mainWindow!.webContents.toggleDevTools();
 });
 
@@ -191,7 +213,7 @@ app.on("open-file", (event, filePath) => {
   }
 });
 
-ipcMain.on("get-file-that-launched-me", (event, arg) => {
+ipcMain.on("get-file-that-launched-me", (event) => {
   // from a mac, we may have been given an event with the file to open
   if (launchFile) {
     event.returnValue = launchFile;

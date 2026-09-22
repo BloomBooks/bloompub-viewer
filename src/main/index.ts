@@ -1,8 +1,8 @@
-import { app, BrowserWindow, ipcMain, protocol, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import * as temp from "temp";
 import * as Path from "path";
 import * as fs from "fs";
-import { bpubProtocolHandler } from "./bpubProtocolHandler";
+import { getLocalServerOrigin, startLocalServer } from "./localServer";
 import { unpackBloomPub } from "./bloomPubUnpacker";
 import windowStateKeeper from "electron-window-state";
 import { hasValidExtension } from "../common/extensions";
@@ -41,18 +41,6 @@ if (process.env.NODE_ENV !== "development") {
     .join(__dirname, "/static")
     .replace(/\\/g, "\\\\");
 }
-
-// Register our internal scheme ("bpub") as standard.  A standard scheme adheres to what is
-// called "generic URI syntax".  A standard scheme can resolve both relative and absolute
-// resources correctly when served.  Also register our internal scheme to bypass content
-// security policy for resources.  The scheme also needs to be registered as supporting
-// streaming.  Without this, the fetch can fail when the resource is larger than 32K.
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: "bpub",
-    privileges: { standard: true, bypassCSP: true, stream: true },
-  },
-]);
 
 let mainWindow: BrowserWindow | null;
 
@@ -118,8 +106,11 @@ function createWindow() {
   // I have no idea why the first handler is necessary to make the second one
   // work as I would expect.  But it is.
   mainWindow.webContents.on("will-frame-navigate", (event) => {
-    // Let the bpub: protocol handler do its thing.  Any other protocols will also
-    // be allowed to proceed.
+    // Navigating within our own local book server is how bloom-player and the books
+    // load, so let that through. Anything else on the web is blocked here and opened in
+    // the user's browser by the handler below.
+    const origin = getLocalServerOrigin();
+    if (origin && event.url.startsWith(origin)) return;
     if (event.url.startsWith("https://") || event.url.startsWith("http://")) {
       event.preventDefault();
     }
@@ -130,16 +121,18 @@ function createWindow() {
   });
 }
 
-app.on("ready", createWindow);
+// Start the local book server before the window, so the renderer can ask for its origin
+// synchronously as soon as it has a book to show.
+app.whenReady().then(async () => {
+  await startLocalServer(() => ({
+    currentPrimaryBloomPubPath,
+    currentUnpackedBookFolder: currentPrimaryBookUnpackedFolder,
+  }));
+  createWindow();
+});
 
-app.whenReady().then(() => {
-  protocol.handle("bpub", (request: GlobalRequest) =>
-    bpubProtocolHandler(
-      request,
-      currentPrimaryBloomPubPath!,
-      currentPrimaryBookUnpackedFolder!
-    )
-  );
+ipcMain.on("get-local-server-origin", (event) => {
+  event.returnValue = getLocalServerOrigin();
 });
 
 app.on("window-all-closed", () => {

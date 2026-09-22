@@ -12,7 +12,11 @@ import * as remote from "@electron/remote";
 contextBridge.exposeInMainWorld("bloomPubViewMainApi", {
   sendSync: (channel: string, data) => {
     // whitelist channels
-    let validChannels = ["get-file-that-launched-me", "toggleFullScreen"];
+    let validChannels = [
+      "get-file-that-launched-me",
+      "get-local-server-origin",
+      "toggleFullScreen",
+    ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.sendSync(channel, data);
     }

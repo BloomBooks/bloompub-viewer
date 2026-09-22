@@ -7,25 +7,32 @@ import * as Path from "path";
 // This handles finding the bloompub, unpacking it if necessary,
 // and returning the path to the requested resource.
 export async function getPathToResourceFromAnotherBook(
-  request: GlobalRequest,
+  requestUrl: string, // the path part of the request, e.g. "/book/<id>/index.htm"
   folderToSearch: string
 ): Promise<string | undefined> {
-  const i = request.url.indexOf("/book/");
+  const i = requestUrl.indexOf("/book/");
   if (i < 0) {
     return undefined;
   }
 
-  // typical requestUrl will be "bpub://bloom-player/book/2c1b71ac-f399-446d-8398-e61a8efd4e83/index.htm"
+  // typical requestUrl will be "/book/2c1b71ac-f399-446d-8398-e61a8efd4e83/index.htm"
   // extract out the book id, which is the part after "book/" that ends with a #, a parameter, or a slash
   // get a second capture group that matches the requested file, e.g., "index.htm"
-  const match = request.url.match(/book\/([^#?/]+)\/(.+)/);
+  const match = requestUrl.match(/book\/([^#?/]+)\/(.+)/);
 
   if (!match) {
-    console.log("No book id found in urlPath: " + request.url);
+    console.log("No book id found in urlPath: " + requestUrl);
     return undefined;
   }
   const bookId = match[1];
-  const requestedFile = match[2];
+  // Strip any query, then percent-decode. The URL is untrusted book content, so a
+  // malformed escape must not throw; leave it as it came and it will simply 404.
+  let requestedFile = match[2].replace(/[?#].*$/, "");
+  try {
+    requestedFile = decodeURIComponent(requestedFile);
+  } catch {
+    // keep the raw text
+  }
   console.log(`asking for ${bookId} with file ${requestedFile}`);
 
   const bookPath = await getPathToBookUnpackIfNeeded(bookId, folderToSearch);
@@ -49,7 +56,20 @@ export async function getPathToResourceFromAnotherBook(
       }
     }
 
-    const filePath = bookPath + "/" + fileNameToFetch;
+    const filePath = Path.resolve(bookPath, fileNameToFetch);
+    // The name came from another book's HTML, so refuse anything that resolves outside
+    // that book's folder ("..%2F..%2Fetc").
+    const relative = Path.relative(Path.resolve(bookPath), filePath);
+    if (
+      relative === ".." ||
+      relative.startsWith(".." + Path.sep) ||
+      Path.isAbsolute(relative)
+    ) {
+      console.error(
+        `Refusing to serve ${filePath}: outside the linked book at ${bookPath}`
+      );
+      return undefined;
+    }
     console.log("Will request filePath: " + filePath);
     return filePath;
   } else {

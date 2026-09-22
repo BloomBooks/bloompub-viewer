@@ -1,98 +1,80 @@
-import { app, net } from "electron";
+import { app } from "electron";
 import * as fs from "fs";
 import * as Path from "path";
 import { getPathToResourceFromAnotherBook } from "./linkedBookLoader";
 
-// Note I'm not sure we actually need this "bpub://" protocol, but it's how
-// we originally set things up. I suspect we could just be using "http://localhost:xxxx"
+// Maps the path part of a request to the local server (see localServer.ts) onto a file on
+// disk. The URL layout is the one bloom-player has always been given, just on an http
+// origin instead of the old bpub:// scheme:
+//   /bloomplayer.htm, /bloomPlayer.js, ...        bloom-player's own files
+//   /C:/Users/.../unpacked-book/some/file.png     a file in the current book (absolute path)
+//   /host/fonts/Andika-Bold.woff2                 a font we ship
+//   /book/<id>/index.htm                          a file in another (linked) book
+export type ResolvedFile =
+  | { filePath: string }
+  | { notFound: true; reason?: string };
 
-export async function bpubProtocolHandler(
-  request: Request,
+export async function resolveRequestedFile(
+  urlPath: string, // the pathname (plus any query), already stripped of origin and token
   currentPrimaryBloomPubPath: string,
-  currentUnpackedBookFolder: string, // enhance probably we could look this up if we start remembering what is unpacked and where
-) {
+  currentUnpackedBookFolder: string,
+): Promise<ResolvedFile> {
   // Ignore certain file types.
   // Note, at one point, this was also capturing .woff and .woff2 requests,
   // but that was causing embedded fonts to not load correctly (BL-15789).
   // Since we couldn't determine why they had been included here, we removed them.
-  if (request.url.endsWith(".map")) {
-    return new Response("Not Found", {
-      status: 404,
-      statusText: "Not Found",
-    });
+  if (urlPath.endsWith(".map")) {
+    return { notFound: true };
   }
-
-  console.log("bpub protocol request: " + request.url);
-
-  let filePath = "";
 
   // Handle requests for material in a book other than the one we started with,
   // as happens when you link to another book.
-  if (request.url.includes("/book/")) {
+  if (urlPath.includes("/book/")) {
     const parentFolder = Path.dirname(currentPrimaryBloomPubPath);
     const result = await getPathToResourceFromAnotherBook(
-      request,
+      urlPath,
       // currently we only search in the same folder as the primary book
       parentFolder,
     );
-    if (result) {
-      filePath = result;
+    return result ? { filePath: result } : { notFound: true };
+  }
+
+  const filePath = convertUrlToPath(urlPath, currentUnpackedBookFolder);
+
+  // Fonts are the one resource we serve out of our own installation rather than out
+  // of the book, so report a clean miss when we can't.
+  if (urlPath.includes("/host/fonts/") && !fs.existsSync(filePath)) {
+    if (shippedFontFiles.includes(Path.basename(filePath))) {
+      // We're supposed to have this one, so our packaging or path logic is broken.
+      // Complain loudly: this stayed hidden for years (BL-16708) because a machine
+      // with Andika installed, or simply online, never notices.
+      console.error(
+        `Could not find the font file we ship for ${urlPath}; looked for ${filePath}`,
+      );
     } else {
-      return new Response("Not Found", {
-        status: 404,
-        statusText: "Not Found",
-      });
+      // Ordinary: the book asked for a font we don't have. It will fall back.
+      console.log(`We do not have a font for ${urlPath}`);
     }
-  } else {
-    filePath = convertUrlToPath(request.url, currentUnpackedBookFolder);
-
-    // Fonts are the one resource we serve out of our own installation rather than out
-    // of the book, so return a clean 404 when we can't, rather than letting net.fetch
-    // fail and reporting a server error.
-    if (request.url.includes("/host/fonts/") && !fs.existsSync(filePath)) {
-      if (shippedFontFiles.includes(Path.basename(filePath))) {
-        // We're supposed to have this one, so our packaging or path logic is broken.
-        // Complain loudly: this stayed hidden for years (BL-16708) because a machine
-        // with Andika installed, or simply online, never notices.
-        console.error(
-          `Could not find the font file we ship for ${request.url}; looked for ${filePath}`,
-        );
-      } else {
-        // Ordinary: the book asked for a font we don't have. It will fall back.
-        console.log(`We do not have a font for ${request.url}`);
-      }
-      return new Response("Not Found", {
-        status: 404,
-        statusText: "Not Found",
-      });
-    }
+    return { notFound: true };
   }
 
-  try {
-    console.log("Sending file: " + filePath);
-    const response = await net.fetch(`file:///${filePath}`);
-    return response;
-  } catch (error) {
-    console.error(
-      `Error handling bpub request for ${request.url} which lead to ${filePath}, got ${error}`,
-    );
-    return new Response("Error", {
-      status: 500,
-      statusText: "Internal Server Error",
-    });
-  }
+  return { filePath };
 }
 
 function convertUrlToPath(
-  requestUrl: string,
+  urlPath: string,
   currentUnpackedBookFolder: string,
 ): string {
-  const urlPrefix = "bpub://";
-  const bloomPlayerOrigin = urlPrefix + "bloom-player/";
-  const baseUrl = decodeURIComponent(requestUrl);
-  const urlPath = baseUrl.startsWith(bloomPlayerOrigin)
-    ? baseUrl.substring(bloomPlayerOrigin.length)
-    : baseUrl.substring(urlPrefix.length); // not from same origin? shouldn't happen.
+  // Drop any query or fragment before decoding; a "?nocache=..." is not part of the
+  // file name. decodeURIComponent throws on a malformed escape, and the URL is
+  // untrusted book content, so fall back to the raw text (which will simply 404).
+  const withoutQuery = urlPath.replace(/[?#].*$/, "").replace(/^\/+/, "");
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(withoutQuery);
+  } catch {
+    decoded = withoutQuery;
+  }
   const playerFolder =
     process.env.NODE_ENV === "development"
       ? Path.normalize(
@@ -101,16 +83,13 @@ function convertUrlToPath(
       : __dirname;
   let path: string;
 
-  if (urlPath.startsWith("host/fonts/"))
-    path = getPathToFont(urlPath.substring("host/fonts/".length));
-  else if (urlPath.startsWith("bloomplayer.htm?allowToggleAppBar")) {
-    path = Path.join(playerFolder, "bloomplayer.htm");
-  } else if (!urlPath.includes("/")) {
-    path = Path.join(playerFolder, urlPath);
-  } else if (urlPath.includes("?")) {
-    path = Path.normalize(urlPath.substr(0, urlPath.indexOf("?")));
+  if (decoded.startsWith("host/fonts/"))
+    path = getPathToFont(decoded.substring("host/fonts/".length));
+  else if (!decoded.includes("/")) {
+    // A bare file name is one of bloom-player's own files (e.g. bloomplayer.htm).
+    path = Path.join(playerFolder, decoded);
   } else {
-    path = Path.normalize(urlPath);
+    path = Path.normalize(decoded);
   }
   // It may be a bug in electron, but some books can send out image paths as
   // bare filenames.  (This may happen only on pages with both a picture and
@@ -124,7 +103,6 @@ function convertUrlToPath(
     console.log(`convertUrlToPath: requested file does not exist: ${path}`);
   }
 
-  // console.log(`convertUrlToPath: path=${path}`);
   return path;
 }
 

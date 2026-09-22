@@ -25,7 +25,10 @@ export async function getPathToResourceFromAnotherBook(
     return undefined;
   }
   const bookId = match[1];
-  const requestedFile = match[2];
+  // The URL may carry a query or fragment and percent-encoded characters (spaces,
+  // non-ASCII letters). Neither belongs in a file name: strip and decode them the way
+  // a file:// load would.
+  const requestedFile = decodeURIComponent(match[2].replace(/[?#].*$/, ""));
   console.log(`asking for ${bookId} with file ${requestedFile}`);
 
   const bookPath = await getPathToBookUnpackIfNeeded(bookId, folderToSearch);

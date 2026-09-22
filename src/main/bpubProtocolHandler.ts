@@ -1,6 +1,7 @@
-import { app, net } from "electron";
+import { app } from "electron";
 import * as fs from "fs";
 import * as Path from "path";
+import { Readable } from "stream";
 import { getPathToResourceFromAnotherBook } from "./linkedBookLoader";
 
 // Note I'm not sure we actually need this "bpub://" protocol, but it's how
@@ -22,7 +23,12 @@ export async function bpubProtocolHandler(
     });
   }
 
-  console.log("bpub protocol request: " + request.url);
+  const rangeHeader = request.headers.get("Range");
+  console.log(
+    "bpub protocol request: " +
+      request.url +
+      (rangeHeader ? ` [${rangeHeader}]` : ""),
+  );
 
   let filePath = "";
 
@@ -70,8 +76,7 @@ export async function bpubProtocolHandler(
 
   try {
     console.log("Sending file: " + filePath);
-    const response = await net.fetch(`file:///${filePath}`);
-    return response;
+    return await serveFile(filePath, request);
   } catch (error) {
     console.error(
       `Error handling bpub request for ${request.url} which lead to ${filePath}, got ${error}`,
@@ -83,13 +88,152 @@ export async function bpubProtocolHandler(
   }
 }
 
+// Serve a file from disk, honoring HTTP Range requests.
+//
+// We used to hand every request to net.fetch("file:///..."), but Electron's file loader
+// ignores the Range header and always answers 200 with the whole file
+// (https://github.com/electron/electron/issues/38749). That is fine for CSS and images,
+// but not for <video> and <audio>: Chromium asks for byte ranges to reach the MP4 index
+// (which Bloom's videos keep at the end of the file), to seek, and to resume. Getting the
+// whole file back every time made every video non-seekable, downloaded each one two or
+// three times per page, and, since Electron 43, produced corrupted frames and freezes in
+// sign-language books (BL-16713). Answering 206 with exactly the bytes asked for fixes
+// all of that.
+export async function serveFile(
+  filePath: string,
+  request: Request,
+): Promise<Response> {
+  let stat: fs.Stats;
+  try {
+    stat = await fs.promises.stat(filePath);
+  } catch {
+    return new Response("Not Found", { status: 404, statusText: "Not Found" });
+  }
+  if (!stat.isFile()) {
+    return new Response("Not Found", { status: 404, statusText: "Not Found" });
+  }
+
+  const size = stat.size;
+  const headers: Record<string, string> = {
+    "Content-Type": getContentType(filePath),
+    "Accept-Ranges": "bytes",
+  };
+
+  let start = 0;
+  let end = size - 1;
+  let status = 200;
+  const range = parseRangeHeader(request.headers.get("Range"), size);
+  if (range === "unsatisfiable") {
+    return new Response(null, {
+      status: 416,
+      statusText: "Range Not Satisfiable",
+      headers: { "Content-Range": `bytes */${size}` },
+    });
+  }
+  if (range) {
+    start = range.start;
+    end = range.end;
+    status = 206;
+    headers["Content-Range"] = `bytes ${start}-${end}/${size}`;
+  }
+  headers["Content-Length"] = String(size === 0 ? 0 : end - start + 1);
+
+  if (request.method === "HEAD" || size === 0) {
+    return new Response(null, { status, headers });
+  }
+
+  const nodeStream = fs.createReadStream(filePath, { start, end });
+  // Chromium opens open-ended ranges ("bytes=0-") for media and abandons them as soon
+  // as it has what it needs. Cancelling the web stream destroys the node stream, but
+  // also listen for the request being aborted so the file handle is released either way.
+  request.signal?.addEventListener("abort", () => nodeStream.destroy());
+  const body = Readable.toWeb(nodeStream) as ReadableStream;
+  return new Response(body, { status, headers });
+}
+
+// Parses a single-range "bytes=a-b" | "bytes=a-" | "bytes=-n" header.
+// Returns undefined when there is no usable Range (serve the whole file), or
+// "unsatisfiable" when the range lies entirely beyond the end of the file.
+// A multi-range request is treated as no range, which the spec allows.
+export function parseRangeHeader(
+  header: string | null,
+  size: number,
+): { start: number; end: number } | "unsatisfiable" | undefined {
+  if (!header) return undefined;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!match) return undefined;
+  const [, startText, endText] = match;
+  if (startText === "" && endText === "") return undefined;
+
+  let start: number;
+  let end: number;
+  if (startText === "") {
+    // suffix range: the last n bytes
+    const suffixLength = Number(endText);
+    if (suffixLength === 0) return "unsatisfiable";
+    start = Math.max(0, size - suffixLength);
+    end = size - 1;
+  } else {
+    start = Number(startText);
+    end = endText === "" ? size - 1 : Math.min(Number(endText), size - 1);
+  }
+  if (start >= size || start > end) return "unsatisfiable";
+  return { start, end };
+}
+
+const contentTypes: Record<string, string> = {
+  ".htm": "text/html; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".bmp": "image/bmp",
+  ".ico": "image/x-icon",
+  ".mp4": "video/mp4",
+  ".m4v": "video/mp4",
+  ".webm": "video/webm",
+  ".ogv": "video/ogg",
+  ".mp3": "audio/mpeg",
+  ".m4a": "audio/mp4",
+  ".ogg": "audio/ogg",
+  ".oga": "audio/ogg",
+  ".wav": "audio/wav",
+  ".weba": "audio/webm",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".pdf": "application/pdf",
+  ".wasm": "application/wasm",
+};
+
+export function getContentType(filePath: string): string {
+  return (
+    contentTypes[Path.extname(filePath).toLowerCase()] ??
+    "application/octet-stream"
+  );
+}
+
+
 function convertUrlToPath(
   requestUrl: string,
   currentUnpackedBookFolder: string,
 ): string {
   const urlPrefix = "bpub://";
   const bloomPlayerOrigin = urlPrefix + "bloom-player/";
-  const baseUrl = decodeURIComponent(requestUrl);
+  // Drop any query or fragment before decoding, as a file:// load would; a "?nocache=..."
+  // or "?allowToggleAppBar" is not part of the file name. (A literal "?" inside a name
+  // arrives percent-encoded and so survives the decoding that follows.)
+  const baseUrl = decodeURIComponent(requestUrl.replace(/[?#].*$/, ""));
   const urlPath = baseUrl.startsWith(bloomPlayerOrigin)
     ? baseUrl.substring(bloomPlayerOrigin.length)
     : baseUrl.substring(urlPrefix.length); // not from same origin? shouldn't happen.
@@ -103,12 +247,9 @@ function convertUrlToPath(
 
   if (urlPath.startsWith("host/fonts/"))
     path = getPathToFont(urlPath.substring("host/fonts/".length));
-  else if (urlPath.startsWith("bloomplayer.htm?allowToggleAppBar")) {
-    path = Path.join(playerFolder, "bloomplayer.htm");
-  } else if (!urlPath.includes("/")) {
+  else if (!urlPath.includes("/")) {
+    // A bare file name is one of bloom-player's own files (e.g. bloomplayer.htm).
     path = Path.join(playerFolder, urlPath);
-  } else if (urlPath.includes("?")) {
-    path = Path.normalize(urlPath.substr(0, urlPath.indexOf("?")));
   } else {
     path = Path.normalize(urlPath);
   }

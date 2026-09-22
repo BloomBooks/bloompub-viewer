@@ -3,6 +3,29 @@ import { getBloomPUBPathFromId } from "./bookFinder";
 import fs from "fs";
 import * as Path from "path";
 
+// decodeURIComponent throws on a malformed escape such as "%E0%A4" or a stray "%".
+// A book URL is untrusted input, so never let that exception escape: fall back to the
+// text as it came, which will simply fail to match a file and 404.
+export function decodeUriComponentSafely(text: string): string {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+}
+
+// True when `filePath` is `folder` itself or something inside it, after resolving
+// any ".." segments. Used to keep a decoded resource name from walking out of a book.
+export function isPathInside(folder: string, filePath: string): boolean {
+  const relative = Path.relative(Path.resolve(folder), Path.resolve(filePath));
+  return (
+    relative === "" ||
+    (relative !== ".." &&
+      !relative.startsWith(".." + Path.sep) &&
+      !Path.isAbsolute(relative))
+  );
+}
+
 // When a book links to another book, it uses the /book/ prefix (see bloom-player Readme for more info).
 // This handles finding the bloompub, unpacking it if necessary,
 // and returning the path to the requested resource.
@@ -28,7 +51,9 @@ export async function getPathToResourceFromAnotherBook(
   // The URL may carry a query or fragment and percent-encoded characters (spaces,
   // non-ASCII letters). Neither belongs in a file name: strip and decode them the way
   // a file:// load would.
-  const requestedFile = decodeURIComponent(match[2].replace(/[?#].*$/, ""));
+  const requestedFile = decodeUriComponentSafely(
+    match[2].replace(/[?#].*$/, ""),
+  );
   console.log(`asking for ${bookId} with file ${requestedFile}`);
 
   const bookPath = await getPathToBookUnpackIfNeeded(bookId, folderToSearch);
@@ -52,7 +77,15 @@ export async function getPathToResourceFromAnotherBook(
       }
     }
 
-    const filePath = bookPath + "/" + fileNameToFetch;
+    const filePath = Path.resolve(bookPath, fileNameToFetch);
+    // The name came from the book's own HTML, percent-decoded, so "..%2F..%2Fetc" would
+    // otherwise walk out of the unpacked book and read an arbitrary local file.
+    if (!isPathInside(bookPath, filePath)) {
+      console.error(
+        `Refusing to serve ${filePath}, which lies outside the linked book at ${bookPath}`,
+      );
+      return undefined;
+    }
     console.log("Will request filePath: " + filePath);
     return filePath;
   } else {

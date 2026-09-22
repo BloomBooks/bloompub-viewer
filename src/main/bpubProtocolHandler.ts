@@ -2,7 +2,10 @@ import { app } from "electron";
 import * as fs from "fs";
 import * as Path from "path";
 import { Readable } from "stream";
-import { getPathToResourceFromAnotherBook } from "./linkedBookLoader";
+import {
+  decodeUriComponentSafely,
+  getPathToResourceFromAnotherBook,
+} from "./linkedBookLoader";
 
 // Note I'm not sure we actually need this "bpub://" protocol, but it's how
 // we originally set things up. I suspect we could just be using "http://localhost:xxxx"
@@ -233,7 +236,7 @@ function convertUrlToPath(
   // Drop any query or fragment before decoding, as a file:// load would; a "?nocache=..."
   // or "?allowToggleAppBar" is not part of the file name. (A literal "?" inside a name
   // arrives percent-encoded and so survives the decoding that follows.)
-  const baseUrl = decodeURIComponent(requestUrl.replace(/[?#].*$/, ""));
+  const baseUrl = decodeUriComponentSafely(requestUrl.replace(/[?#].*$/, ""));
   const urlPath = baseUrl.startsWith(bloomPlayerOrigin)
     ? baseUrl.substring(bloomPlayerOrigin.length)
     : baseUrl.substring(urlPrefix.length); // not from same origin? shouldn't happen.
